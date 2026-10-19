@@ -34,8 +34,9 @@ yarn-error.log*
 .env*
 !.env.example
 
-# local profile store
-/data
+# local profile store, except the saved pages that belong in the cloud copy
+/data/*
+!/data/store.json
 
 # vercel
 .vercel
