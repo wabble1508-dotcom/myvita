@@ -1,0 +1,90 @@
+// MyVita identity graph.
+// PostgreSQL (Supabase). The local web app reads data/store.json until DATABASE_URL is connected.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum VerificationLevel {
+  UNVERIFIED
+  EID_VERIFIED
+  OAUTH_VERIFIED
+}
+
+enum FootprintCategory {
+  PROFESSIONAL
+  EDUCATION
+  ACADEMIC
+  SOCIAL
+  MEDIA_MENTION
+  PUBLIC_RECORD
+  DATA_LEAK
+  OTHER
+}
+
+enum Visibility {
+  PUBLIC
+  PRIVATE
+  SHARE_ONLY
+}
+
+model User {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  fullName   String
+  isVerified Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  profile    IdentityProfile?
+}
+
+model IdentityProfile {
+  id                String            @id @default(cuid())
+  userId            String            @unique
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  did               String            @unique
+  headline          String            @default("")
+  bio               String            @default("")
+  verificationLevel VerificationLevel @default(UNVERIFIED)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  items             DiscoveredItem[]
+  sharedLinks       SharedLink[]
+}
+
+model DiscoveredItem {
+  id                  String            @id @default(cuid())
+  profileId           String
+  profile             IdentityProfile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  sourceUrl           String
+  domain              String
+  title               String
+  snippet             String
+  category            FootprintCategory
+  confidenceScore     Float
+  isVerifiedByOwner   Boolean           @default(false)
+  visibility          Visibility        @default(PRIVATE)
+  deletionRequestedAt DateTime?
+  createdAt           DateTime          @default(now())
+
+  @@index([profileId, category])
+  @@index([domain])
+}
+
+model SharedLink {
+  id                String              @id @default(cuid())
+  profileId         String
+  profile           IdentityProfile     @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  accessToken       String              @unique
+  expiresAt         DateTime
+  allowedCategories FootprintCategory[]
+  viewsCount        Int                 @default(0)
+  createdAt         DateTime            @default(now())
+
+  @@index([profileId])
+}
