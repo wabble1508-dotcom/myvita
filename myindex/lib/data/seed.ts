@@ -1,6 +1,7 @@
 import { localDid } from "@/lib/domain/did";
 import { DEMO_PUBLIC_ID } from "@/lib/domain/public-id";
-import type { FootprintCategory, StoreData, Visibility } from "@/lib/domain/types";
+import { isPubliclyFindable } from "@/lib/domain/public-store";
+import type { FootprintCategory, StoreData } from "@/lib/domain/types";
 import { normalizeHit } from "@/lib/services/normalizer";
 import { simulateSerp } from "@/lib/services/osint";
 
@@ -38,17 +39,20 @@ export function createSeed(): StoreData {
           createdAt: iso,
           updatedAt: iso,
         },
-        items: hits.map((hit, index) => {
+        items: hits.flatMap((hit, index) => {
           const normalized = normalizeHit(hit, fullName);
-          return {
-            ...normalized,
-            id: `itm_seed_${index + 1}`,
-            profileId: PROFILE_ID,
-            visibility: seedVisibility(normalized.category, normalized.domain),
-            isVerifiedByOwner: seedReviewed(normalized.category, normalized.domain),
-            deletionRequestedAt: null,
-            createdAt: new Date(now.getTime() - (hits.length - index) * 86_400_000).toISOString(),
-          };
+          if (!isPubliclyFindable(normalized.category, normalized.domain)) return [];
+          return [
+            {
+              ...normalized,
+              id: `itm_seed_${index + 1}`,
+              profileId: PROFILE_ID,
+              visibility: "PUBLIC" as const,
+              isVerifiedByOwner: seedReviewed(normalized.category, normalized.domain),
+              deletionRequestedAt: null,
+              createdAt: new Date(now.getTime() - (hits.length - index) * 86_400_000).toISOString(),
+            },
+          ];
         }),
         links: [
           {
@@ -66,16 +70,8 @@ export function createSeed(): StoreData {
   };
 }
 
-function seedVisibility(category: FootprintCategory, domain: string): Visibility {
-  if (category === "DATA_LEAK" || category === "OTHER") return "PRIVATE";
-  if (domain.includes("instagram") || domain.includes("facebook")) return "PRIVATE";
-  if (domain.includes("portfolio") || category === "PUBLIC_RECORD") return "SHARE_ONLY";
-  return "PUBLIC";
-}
-
 function seedReviewed(category: FootprintCategory, domain: string): boolean {
   if (category === "PROFESSIONAL" && !domain.includes("portfolio")) return true;
   if (category === "ACADEMIC" || category === "PUBLIC_RECORD") return true;
-  if (domain.includes("instagram")) return true;
   return false;
 }

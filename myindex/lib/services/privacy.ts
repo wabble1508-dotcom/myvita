@@ -65,7 +65,7 @@ function summaryFor(input: {
     return `${input.openLeaks} Datenleck-Hinweis${input.openLeaks === 1 ? " ist" : "e sind"} noch sichtbar. Stell sie auf privat oder frag die Löschung an.`;
   }
   if (input.total === 0) {
-    return "Starte eine Suche, um zu sehen, wie Funde sortiert werden. Neue Treffer bleiben privat, bis du sie prüfst.";
+    return "Starte eine Suche. Gespeichert wird nur, was öffentlich gefunden werden soll.";
   }
   if (input.reviewed < input.total) {
     return `${input.reviewed} von ${input.total} Funden geprüft. Eine Änderung der Sichtbarkeit zählt als Prüfung.`;

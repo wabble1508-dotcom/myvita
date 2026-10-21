@@ -44,7 +44,7 @@ export function ScanPanel({ fullName, email }: { fullName: string; email: string
       setMessage(
         created === 0
           ? "Keine neuen Funde. Passende Beispielquellen liegen schon in der Sammlung."
-          : `${created} ${created === 1 ? "simulierten Fund" : "simulierte Funde"} einsortiert${skipped ? `, ${skipped} waren schon da` : ""}. Neue Funde starten privat.`,
+          : `${created} ${created === 1 ? "simulierten Fund" : "simulierte Funde"} einsortiert${skipped ? `, ${skipped} waren schon da oder gehören nicht in die Sammlung` : ""}. Gespeichert wird nur, was öffentlich gefunden werden soll.`,
       );
       router.refresh();
     },

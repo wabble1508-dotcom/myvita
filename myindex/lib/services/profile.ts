@@ -4,6 +4,7 @@ import { mutateStore, readStore } from "@/lib/data/store";
 import { localDid } from "@/lib/domain/did";
 import { createPublicId } from "@/lib/domain/create-public-id";
 import { normalizePublicId } from "@/lib/domain/public-id";
+import { isPubliclyFindable } from "@/lib/domain/public-store";
 import type {
   DashboardData,
   ItemRecord,
@@ -146,6 +147,10 @@ export function runScan(input: ScanInput): Promise<ScanSummary> {
 
     for (const hit of simulateSerp(input)) {
       const normalized = normalizeHit(hit, input.fullName);
+      if (!isPubliclyFindable(normalized.category, normalized.domain)) {
+        skipped += 1;
+        continue;
+      }
       if (seen.has(normalized.sourceUrl)) {
         skipped += 1;
         continue;
@@ -160,7 +165,7 @@ export function runScan(input: ScanInput): Promise<ScanSummary> {
         id: randomUUID(),
         profileId: person.profile.id,
         isVerifiedByOwner: false,
-        visibility: "PRIVATE",
+        visibility: "PUBLIC",
         deletionRequestedAt: null,
         createdAt: now,
       });
@@ -174,9 +179,16 @@ export function runScan(input: ScanInput): Promise<ScanSummary> {
 export function setItemVisibility(itemId: string, visibility: Visibility): Promise<void> {
   return mutateStore((data) => {
     const person = findActive(data);
-    const item = requireItem(person.items, itemId);
-    item.visibility = visibility;
-    item.isVerifiedByOwner = true;
+    const index = person.items.findIndex((entry) => entry.id === itemId);
+    if (index < 0) requireItem(person.items, itemId);
+    const item = person.items[index];
+    if (visibility !== "PUBLIC" || !isPubliclyFindable(item.category, item.domain)) {
+      person.items.splice(index, 1);
+    } else {
+      item.visibility = "PUBLIC";
+      item.deletionRequestedAt = null;
+      item.isVerifiedByOwner = true;
+    }
     person.profile.updatedAt = new Date().toISOString();
   });
 }
@@ -184,12 +196,10 @@ export function setItemVisibility(itemId: string, visibility: Visibility): Promi
 export function requestItemDeletion(itemId: string): Promise<void> {
   return mutateStore((data) => {
     const person = findActive(data);
-    const item = requireItem(person.items, itemId);
-    if (item.deletionRequestedAt) return;
-    item.deletionRequestedAt = new Date().toISOString();
-    item.visibility = "PRIVATE";
-    item.isVerifiedByOwner = true;
-    person.profile.updatedAt = item.deletionRequestedAt;
+    const index = person.items.findIndex((entry) => entry.id === itemId);
+    if (index < 0) return;
+    person.items.splice(index, 1);
+    person.profile.updatedAt = new Date().toISOString();
   });
 }
 

@@ -56,8 +56,8 @@ export default async function PersonByIdPage({ params }: PageProps) {
           empty="Zu dieser ID sind keine öffentlichen Seiten freigegeben."
         />
         <footer className="mt-14 border-t border-stone-200 pt-5 text-sm leading-6 text-stone-500">
-          Diese Seite gehört zur ID {person.publicId}. Private Seiten und Seiten nur zum Teilen fehlen. Die Einträge sind
-          simuliert, keine Live-Treffer aus dem Web.
+          Diese Seite zeigt die gespeicherten Seiten der ID {person.publicId}. Es sind die Seiten, die öffentlich gefunden
+          werden sollen. Die Einträge sind simuliert, keine Live-Treffer aus dem Web.
         </footer>
       </div>
     </main>

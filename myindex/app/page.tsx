@@ -45,8 +45,8 @@ export default function HomePage() {
       </div>
       <ul className="mt-16 grid gap-4 sm:grid-cols-3">
         <Point icon={FingerprintPattern} title="Eigene ID" text="Der Abruf läuft über die ID. Ein gleicher Name bleibt eine andere Person." />
-        <Point icon={Shield} title="Du bestimmst die Sichtbarkeit" text="Jede Seite kann öffentlich, nur zum Teilen oder privat sein. Neue Suchen starten privat." />
-        <Point icon={Link2} title="Ein Link, den man schicken kann" text="24 Stunden, 7 Tage oder 30 Tage. Private Seiten reisen nicht mit." />
+        <Point icon={Shield} title="Nur öffentlich auffindbare Seiten" text="Gespeichert wird nur, was öffentlich gefunden werden soll. Private Profile und Datenlecks bleiben draußen." />
+        <Point icon={Link2} title="Ein Link, den man schicken kann" text="24 Stunden, 7 Tage oder 30 Tage. Der Link zeigt eine Auswahl der gespeicherten öffentlichen Seiten." />
       </ul>
     </main>
   );
@@ -65,13 +65,13 @@ function PreviewStage() {
       <div className="mt-4 grid gap-3">
         <PlatformFace
           preview
-          domain="instagram.com"
-          title={`${preview.name} auf Instagram`}
-          snippet="Ein Satz im öffentlichen Profil."
+          domain="linkedin.com"
+          title={`${preview.name} auf LinkedIn`}
+          snippet="Öffentliche Profilseite mit einem Ort."
           facts={[
             { label: "Name auf der Seite", value: preview.name },
-            { label: "Nutzername", value: preview.handle },
-            { label: "Bio", value: "Ein Satz im öffentlichen Profil." },
+            { label: "Ort", value: "Berlin" },
+            { label: "Text auf der Seite", value: "Öffentliche Profilseite mit einem Ort." },
           ]}
         />
         <div className="grid gap-3 sm:grid-cols-2">

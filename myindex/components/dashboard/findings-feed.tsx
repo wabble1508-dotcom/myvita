@@ -81,8 +81,7 @@ export function FindingsFeed({ items }: { items: ItemRecord[] }) {
         <div>
           <h2 className="text-lg font-semibold text-white">Was im Netz liegt</h2>
           <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-400">
-            Jede Karte zeigt alle Angaben, die zu dieser Seite gespeichert sind. Profile stehen oben, der Rest liegt nach Rubrik darunter.
-            Öffentlich ist über die Personen-ID abrufbar. „Teilen“ nur in deinen Links. Privat bleibt bei beiden weg.
+            Jede Karte zeigt alle Angaben, die zu dieser Seite gespeichert sind. In der Sammlung liegen nur Seiten, die öffentlich gefunden werden sollen. Über die Personen-ID sind sie abrufbar.
           </p>
         </div>
         {category !== "ALL" ? (

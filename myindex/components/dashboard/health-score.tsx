@@ -38,7 +38,7 @@ export function HealthScoreCard({
         <Meter
           label="Datenlecks eingegrenzt"
           value={health.openLeaks === 0 ? 100 : 0}
-          detail={health.openLeaks === 0 ? "Privat" : `${health.openLeaks} offen`}
+          detail={health.openLeaks === 0 ? "Keine gespeichert" : `${health.openLeaks} offen`}
         />
       </dl>
     </Card>

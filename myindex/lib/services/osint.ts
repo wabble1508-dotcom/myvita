@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import type { ScanInput } from "@/lib/validators";
 import { slugify } from "@/lib/utils";
 import { type RawHit } from "@/lib/services/normalizer";
@@ -7,8 +6,8 @@ import { type RawHit } from "@/lib/services/normalizer";
  * Lokaler Platzhalter für eine Suchtreffer-Liste.
  * Es geht kein Aufruf an Google, SerpAPI oder ein anderes Netz.
  * Die Treffer sind Beispielseiten, wie sie zu einem Namen im Netz liegen können.
- * Jede Seite wird danach in eine Rubrik sortiert. Seiten zu Studium oder Papers
- * fehlen hier, weil so eine Seite bei diesem Namen nicht dabei ist.
+ * Jede Seite wird danach in eine Rubrik sortiert. Studium, Papers, private Profile
+ * und Datenleck-Hinweise fehlen, weil sie nicht öffentlich gefunden werden sollen.
  */
 export function simulateSerp(input: ScanInput): RawHit[] {
   const slug = slugify(input.fullName);
@@ -35,29 +34,6 @@ export function simulateSerp(input: ScanInput): RawHit[] {
         { label: "Seite", value: "GitHub-Profil" },
         { label: "Nutzername", value: `example-simulated-${handle}` },
         { label: "Text auf der Seite", value: "Bio und eine Liste öffentlicher Repositories." },
-      ],
-    },
-    {
-      url: `https://www.instagram.com/example.simulated.${handle}`,
-      title: `${name} auf Instagram`,
-      snippet: `Öffentliche Profilseite zu ${name}.`,
-      facts: [
-        { label: "Seite", value: "Instagram-Profil" },
-        { label: "Nutzername", value: `@example.simulated.${handle}` },
-        { label: "Name auf der Seite", value: name },
-        { label: "Bio", value: "Ein Satz im öffentlichen Profil." },
-        { label: "Beiträge", value: "auf der Seite zu sehen" },
-      ],
-    },
-    {
-      url: `https://www.facebook.com/example.simulated.${handle}`,
-      title: `${name} auf Facebook`,
-      snippet: `Öffentliche Profilseite, auf der der Name ${name} steht.`,
-      facts: [
-        { label: "Seite", value: "Facebook-Profil" },
-        { label: "Name auf der Seite", value: name },
-        { label: "Text auf der Seite", value: "Öffentliche Kurzinfo und ein Ort." },
-        { label: "Ort", value: "Berlin" },
       ],
     },
     {
@@ -92,53 +68,7 @@ export function simulateSerp(input: ScanInput): RawHit[] {
         { label: "Textstelle", value: `${name} wird in einem Absatz genannt.` },
       ],
     },
-    {
-      url: `https://forum.example/t/${slug}`,
-      title: `Forenthread mit ${name}`,
-      snippet: `Öffentlicher Thread. Der Name ${name} steht in einem Beitrag.`,
-      facts: [
-        { label: "Seite", value: "Forenthread" },
-        { label: "Threadtitel", value: `Diskussion, in der ${name} vorkommt` },
-        { label: "Textstelle", value: `Ein Beitrag erwähnt ${name} mit einem Satz.` },
-      ],
-    },
-    {
-      url: `https://comments.example/${slug}`,
-      title: `Kommentar von ${name}`,
-      snippet: `Öffentlicher Kommentar unter einem Beitrag, signiert mit ${name}.`,
-      facts: [
-        { label: "Seite", value: "Kommentar" },
-        { label: "Angezeigter Name", value: name },
-        { label: "Text", value: "Ein kurzer öffentlicher Kommentar." },
-      ],
-    },
-    {
-      url: `https://site.example/${slug}`,
-      title: `Öffentliche Seite zu ${name}`,
-      snippet: `Eine einzelne öffentliche Seite, auf der ${name} steht.`,
-      facts: [
-        { label: "Seite", value: "Eigene Seite" },
-        { label: "Überschrift", value: name },
-        { label: "Text auf der Seite", value: "Ein paar öffentliche Sätze und ein Kontaktformular." },
-      ],
-    },
   ];
-
-  if (input.email) {
-    const tag = createHash("sha256").update(input.email.trim().toLowerCase()).digest("hex").slice(0, 12);
-    hits.push({
-      url: `https://haveibeenpwned.com/#alert-${tag}`,
-      title: "Hinweis aus einem Leak-Index",
-      snippet:
-        "Simulierter Datenleck-Hinweis. Ein öffentlicher Index würde die eingegebene E-Mail markieren. MyVita speichert keine Passwörter und keine Inhalte aus Datenlecks.",
-      facts: [
-        { label: "Art", value: "Datenleck-Hinweis" },
-        { label: "Sichtbare Angabe", value: "E-Mail-Adresse in einem öffentlichen Index" },
-        { label: "Passwort", value: "wird nicht übernommen" },
-        { label: "Leak-Inhalt", value: "wird nicht übernommen" },
-      ],
-    });
-  }
 
   return hits;
 }

@@ -4,6 +4,7 @@ import path from "node:path";
 import { createSeed } from "@/lib/data/seed";
 import { createPublicId } from "@/lib/domain/create-public-id";
 import { DEMO_PUBLIC_ID, normalizePublicId } from "@/lib/domain/public-id";
+import { isPubliclyFindable } from "@/lib/domain/public-store";
 import type { ItemRecord, PersonRecord, ProfileRecord, ShareLinkRecord, StoreData, UserRecord } from "@/lib/domain/types";
 
 const directory = path.join(process.cwd(), "data");
@@ -82,10 +83,14 @@ function peopleStore(people: unknown[], activePublicId: unknown, upgraded: boole
   const normalized: PersonRecord[] = people.map((person) => {
     const claimed = claimId(person.profile, used);
     if (claimed.changed) dirty = true;
+    const items = (person.items as ItemRecord[]).filter(
+      (item) => item.visibility === "PUBLIC" && item.deletionRequestedAt == null && isPubliclyFindable(item.category, item.domain),
+    );
+    if (items.length !== person.items.length) dirty = true;
     return {
       user: person.user as UserRecord,
       profile: { ...(person.profile as ProfileRecord), publicId: claimed.id },
-      items: person.items as ItemRecord[],
+      items,
       links: person.links as ShareLinkRecord[],
     };
   });

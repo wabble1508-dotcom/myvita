@@ -9,7 +9,7 @@
         "fullName": "Alex Rivera",
         "isVerified": true,
         "createdAt": "2026-10-20T13:23:56.713Z",
-        "updatedAt": "2026-10-20T13:23:56.713Z"
+        "updatedAt": "2026-10-21T20:54:00.565Z"
       },
       "profile": {
         "id": "prf_local_demo",
@@ -20,7 +20,7 @@
         "bio": "Ich baue Werkzeuge, mit denen Menschen ihre eigenen Daten überblicken. Diese Seite zeigt nur die Spuren, die ich freigebe.",
         "verificationLevel": "OAUTH_VERIFIED",
         "createdAt": "2026-10-20T13:23:56.713Z",
-        "updatedAt": "2026-10-20T13:23:56.713Z"
+        "updatedAt": "2026-10-21T20:54:00.565Z"
       },
       "items": [
         {
@@ -82,74 +82,6 @@
           "isVerifiedByOwner": true,
           "deletionRequestedAt": null,
           "createdAt": "2026-10-10T13:23:56.713Z"
-        },
-        {
-          "sourceUrl": "https://www.instagram.com/example.simulated.alexrivera",
-          "domain": "instagram.com",
-          "title": "Alex Rivera auf Instagram",
-          "snippet": "Öffentliche Profilseite zu Alex Rivera.",
-          "category": "SOCIAL",
-          "confidenceScore": 0.94,
-          "facts": [
-            {
-              "label": "Seite",
-              "value": "Instagram-Profil"
-            },
-            {
-              "label": "Nutzername",
-              "value": "@example.simulated.alexrivera"
-            },
-            {
-              "label": "Name auf der Seite",
-              "value": "Alex Rivera"
-            },
-            {
-              "label": "Bio",
-              "value": "Ein Satz im öffentlichen Profil."
-            },
-            {
-              "label": "Beiträge",
-              "value": "auf der Seite zu sehen"
-            }
-          ],
-          "id": "itm_seed_3",
-          "profileId": "prf_local_demo",
-          "visibility": "PRIVATE",
-          "isVerifiedByOwner": true,
-          "deletionRequestedAt": null,
-          "createdAt": "2026-10-11T13:23:56.713Z"
-        },
-        {
-          "sourceUrl": "https://www.facebook.com/example.simulated.alexrivera",
-          "domain": "facebook.com",
-          "title": "Alex Rivera auf Facebook",
-          "snippet": "Öffentliche Profilseite, auf der der Name Alex Rivera steht.",
-          "category": "SOCIAL",
-          "confidenceScore": 0.94,
-          "facts": [
-            {
-              "label": "Seite",
-              "value": "Facebook-Profil"
-            },
-            {
-              "label": "Name auf der Seite",
-              "value": "Alex Rivera"
-            },
-            {
-              "label": "Text auf der Seite",
-              "value": "Öffentliche Kurzinfo und ein Ort."
-            },
-            {
-              "label": "Ort",
-              "value": "Berlin"
-            }
-          ],
-          "id": "itm_seed_4",
-          "profileId": "prf_local_demo",
-          "visibility": "PRIVATE",
-          "isVerifiedByOwner": false,
-          "deletionRequestedAt": null,
-          "createdAt": "2026-10-12T13:23:56.713Z"
         },
         {
           "sourceUrl": "https://x.com/example_simulated_alexrivera",
@@ -242,122 +174,6 @@
           "isVerifiedByOwner": false,
           "deletionRequestedAt": null,
           "createdAt": "2026-10-15T13:23:56.713Z"
-        },
-        {
-          "sourceUrl": "https://forum.example/t/alex-rivera",
-          "domain": "forum.example",
-          "title": "Forenthread mit Alex Rivera",
-          "snippet": "Öffentlicher Thread. Der Name Alex Rivera steht in einem Beitrag.",
-          "category": "OTHER",
-          "confidenceScore": 0.48,
-          "facts": [
-            {
-              "label": "Seite",
-              "value": "Forenthread"
-            },
-            {
-              "label": "Threadtitel",
-              "value": "Diskussion, in der Alex Rivera vorkommt"
-            },
-            {
-              "label": "Textstelle",
-              "value": "Ein Beitrag erwähnt Alex Rivera mit einem Satz."
-            }
-          ],
-          "id": "itm_seed_8",
-          "profileId": "prf_local_demo",
-          "visibility": "PRIVATE",
-          "isVerifiedByOwner": false,
-          "deletionRequestedAt": null,
-          "createdAt": "2026-10-16T13:23:56.713Z"
-        },
-        {
-          "sourceUrl": "https://comments.example/alex-rivera",
-          "domain": "comments.example",
-          "title": "Kommentar von Alex Rivera",
-          "snippet": "Öffentlicher Kommentar unter einem Beitrag, signiert mit Alex Rivera.",
-          "category": "OTHER",
-          "confidenceScore": 0.48,
-          "facts": [
-            {
-              "label": "Seite",
-              "value": "Kommentar"
-            },
-            {
-              "label": "Angezeigter Name",
-              "value": "Alex Rivera"
-            },
-            {
-              "label": "Text",
-              "value": "Ein kurzer öffentlicher Kommentar."
-            }
-          ],
-          "id": "itm_seed_9",
-          "profileId": "prf_local_demo",
-          "visibility": "PRIVATE",
-          "isVerifiedByOwner": false,
-          "deletionRequestedAt": null,
-          "createdAt": "2026-10-17T13:23:56.713Z"
-        },
-        {
-          "sourceUrl": "https://site.example/alex-rivera",
-          "domain": "site.example",
-          "title": "Öffentliche Seite zu Alex Rivera",
-          "snippet": "Eine einzelne öffentliche Seite, auf der Alex Rivera steht.",
-          "category": "OTHER",
-          "confidenceScore": 0.48,
-          "facts": [
-            {
-              "label": "Seite",
-              "value": "Eigene Seite"
-            },
-            {
-              "label": "Überschrift",
-              "value": "Alex Rivera"
-            },
-            {
-              "label": "Text auf der Seite",
-              "value": "Ein paar öffentliche Sätze und ein Kontaktformular."
-            }
-          ],
-          "id": "itm_seed_10",
-          "profileId": "prf_local_demo",
-          "visibility": "PRIVATE",
-          "isVerifiedByOwner": false,
-          "deletionRequestedAt": null,
-          "createdAt": "2026-10-18T13:23:56.713Z"
-        },
-        {
-          "sourceUrl": "https://haveibeenpwned.com/#alert-73793e1868d3",
-          "domain": "haveibeenpwned.com",
-          "title": "Hinweis aus einem Leak-Index",
-          "snippet": "Simulierter Datenleck-Hinweis. Ein öffentlicher Index würde die eingegebene E-Mail markieren. MyVita speichert keine Passwörter und keine Inhalte aus Datenlecks.",
-          "category": "DATA_LEAK",
-          "confidenceScore": 0.88,
-          "facts": [
-            {
-              "label": "Art",
-              "value": "Datenleck-Hinweis"
-            },
-            {
-              "label": "Sichtbare Angabe",
-              "value": "E-Mail-Adresse in einem öffentlichen Index"
-            },
-            {
-              "label": "Passwort",
-              "value": "wird nicht übernommen"
-            },
-            {
-              "label": "Leak-Inhalt",
-              "value": "wird nicht übernommen"
-            }
-          ],
-          "id": "itm_seed_11",
-          "profileId": "prf_local_demo",
-          "visibility": "PRIVATE",
-          "isVerifiedByOwner": false,
-          "deletionRequestedAt": null,
-          "createdAt": "2026-10-19T13:23:56.713Z"
         }
       ],
       "links": [
@@ -371,7 +187,7 @@
             "SOCIAL",
             "MEDIA_MENTION"
           ],
-          "viewsCount": 326,
+          "viewsCount": 355,
           "createdAt": "2026-10-20T13:23:56.713Z"
         }
       ]

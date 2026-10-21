@@ -56,8 +56,8 @@ export default async function PublicVitaPage({ params }: PageProps) {
       {vita.bio ? <p className="mt-6 max-w-2xl text-lg leading-8 text-stone-700">{vita.bio}</p> : null}
       <ReleasedPages sections={vita.sections} />
       <footer className="mt-14 border-t border-stone-200 pt-5 text-sm leading-6 text-stone-500">
-        Geteilte Seiten der ID {vita.publicId}. Die Einträge sind simuliert, keine Live-Treffer aus dem Web. Private Funde
-        fehlen. Dieser Link läuft am {formatWhen(vita.expiresAt)} ab und wurde {vita.viewsCount} Mal geöffnet.
+        Geteilte Seiten der ID {vita.publicId}. Die Einträge sind simuliert, keine Live-Treffer aus dem Web. Dieser Link
+        läuft am {formatWhen(vita.expiresAt)} ab und wurde {vita.viewsCount} Mal geöffnet.
       </footer>
     </Document>
   );
