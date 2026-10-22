@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { FingerprintPattern, Link2, Shield } from "lucide-react";
-import { IdLookup } from "@/components/identity/id-lookup";
+import { EnrollPerson } from "@/components/identity/enroll-person";
 import { PlatformFace } from "@/components/profile/platform-face";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 const preview = {
   name: "Alex Rivera",
@@ -29,29 +27,22 @@ export default function HomePage() {
             Eine Ansicht für alles, was im Netz zu einem Namen liegt.
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-8 text-zinc-400">
-            Profile, Videos, Erwähnungen und einzelne Seiten, nebeneinander und nach Rubrik sortiert.
-            Jede Person hat eine eigene ID. Der Abruf gilt dieser ID, auch wenn derselbe Name noch einmal vorkommt.
+            Name eintragen. MyVita legt eine eigene ID an und sortiert öffentliche Seiten in Social Media, Nachrichten und die übrigen Rubriken.
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link href="/dashboard" className={cn(buttonVariants({ variant: "primary", size: "md" }))}>
-              App öffnen
-            </Link>
-            <Link href="/dashboard/share" className={cn(buttonVariants({ variant: "ghost", size: "md" }))}>
-              Link zum Teilen
-            </Link>
+          <div className="mt-8 max-w-xl">
+            <EnrollPerson />
           </div>
-          <div className="mt-8 max-w-md rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-            <IdLookup />
-          </div>
-          <p className="mt-6 text-sm text-zinc-500">
-            Die Beispielperson liegt auf diesem Rechner. Die Suche fragt das öffentliche Web ab und speichert die Seiten, auf denen der Name steht.
+          <p className="mt-4 text-sm text-zinc-500">
+            <Link href="/dashboard" className="text-accent underline">
+              Vorhandene Personen öffnen
+            </Link>
           </p>
         </div>
         <PreviewStage />
       </div>
       <ul className="grid gap-3 border-t border-white/10 py-8 sm:grid-cols-3">
         <Point icon={FingerprintPattern} title="Eigene ID" text="Der Abruf läuft über die ID. Ein gleicher Name bleibt eine andere Person." />
-        <Point icon={Shield} title="Öffentliche Seiten zum Namen" text="Die Suche sammelt, was öffentlich zum Namen zu finden ist. Passwort- und Datenleck-Seiten bleiben draußen." />
+        <Point icon={Shield} title="Nach Quelle sortiert" text="Social Media, Zeitungen, Nachrichten, Beruf und weitere öffentliche Seiten. Leere Rubriken bleiben leer." />
         <Point icon={Link2} title="Ein Link, den man schicken kann" text="24 Stunden, 7 Tage oder 30 Tage. Der Link zeigt eine Auswahl der gespeicherten öffentlichen Seiten." />
       </ul>
     </main>

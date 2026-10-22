@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, Copy } from "lucide-react";
-import { createPersonAction, switchPersonAction } from "@/lib/actions/footprint";
+import { switchPersonAction } from "@/lib/actions/footprint";
 import type { PersonSummary } from "@/lib/domain/types";
 import { IdLookup } from "@/components/identity/id-lookup";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -14,8 +14,6 @@ import { cn } from "@/lib/utils";
 export function PersonBar({ people, publicId }: { people: PersonSummary[]; publicId: string }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [name, setName] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const duplicated = duplicatedNames(people);
 
@@ -46,7 +44,6 @@ export function PersonBar({ people, publicId }: { people: PersonSummary[]; publi
               onClick={() => {
                 if (person.active) return;
                 setError(null);
-                setMessage(null);
                 startTransition(async () => {
                   const result = await switchPersonAction(person.publicId);
                   if (!result.ok) {
@@ -70,42 +67,9 @@ export function PersonBar({ people, publicId }: { people: PersonSummary[]; publi
           </li>
         ))}
       </ul>
-      <div className="mt-5 grid gap-4 lg:grid-cols-2">
-        <form
-          className="space-y-2"
-          onSubmit={(event) => {
-            event.preventDefault();
-            setError(null);
-            setMessage(null);
-            startTransition(async () => {
-              const result = await createPersonAction(name);
-              if (!result.ok) {
-                setError(result.error);
-                return;
-              }
-              setName("");
-              setMessage(`Neue ID ${result.data.publicId}. Der Name darf schon vorkommen.`);
-              router.refresh();
-            });
-          }}
-        >
-          <label className="block space-y-1.5">
-            <span className="text-xs font-medium uppercase tracking-[0.14em] text-slate-400">Weitere Person</span>
-            <input
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="Name, auch wenn er schon vorkommt"
-              autoComplete="name"
-              className="h-11 w-full rounded-2xl border border-white/10 bg-black/25 px-3 text-sm text-slate-50 outline-none placeholder:text-slate-500 focus:border-accent/70"
-            />
-          </label>
-          <Button type="submit" variant="ghost" disabled={pending}>
-            {pending ? "Legt an…" : "Eigene ID anlegen"}
-          </Button>
-        </form>
+      <div className="mt-5 max-w-md">
         <IdLookup />
       </div>
-      {message ? <p className="mt-3 text-sm text-accent">{message}</p> : null}
       {error ? (
         <p className="mt-3 text-sm text-rose-100" role="alert">
           {error}

@@ -32,10 +32,8 @@ export function FindingsFeed({ items }: { items: ItemRecord[] }) {
   const [error, setError] = useState<string | null>(null);
 
   const visibleItems = items.filter((item) => category === "ALL" || item.category === category);
-  const profiles = visibleItems.filter((item) => platformOf(item.domain));
-  const pages = visibleItems.filter((item) => !platformOf(item.domain));
   const groups = CATEGORY_ORDER.flatMap((entry) => {
-    const groupItems = pages.filter((item) => item.category === entry);
+    const groupItems = visibleItems.filter((item) => item.category === entry);
     return groupItems.length === 0 ? [] : [{ category: entry, items: groupItems }];
   });
 
@@ -81,7 +79,7 @@ export function FindingsFeed({ items }: { items: ItemRecord[] }) {
         <div>
           <h2 className="text-lg font-semibold text-white">Was im Netz liegt</h2>
           <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-400">
-            Jede Karte zeigt alle Angaben, die zu dieser Seite gespeichert sind. Die Suche legt öffentliche Seiten zum Namen ab. Über die Personen-ID sind sie abrufbar.
+            Die Seiten liegen nach Rubrik: Social Media, Nachrichten, Beruf und die übrigen öffentlichen Quellen. Jede Karte zeigt, was gespeichert ist.
           </p>
         </div>
         {category !== "ALL" ? (
@@ -95,28 +93,10 @@ export function FindingsFeed({ items }: { items: ItemRecord[] }) {
           {error}
         </p>
       ) : null}
-      {profiles.length === 0 && groups.length === 0 ? (
+      {groups.length === 0 ? (
         <Card className="px-5 py-8 text-sm text-slate-400">
-          {items.length === 0 ? "Für diese ID sind noch keine Seiten gespeichert." : "Dazu lag nichts im Netz."}
+          {items.length === 0 ? "Trag oben einen Namen ein. Leere Rubriken bleiben leer." : "Dazu lag nichts im Netz."}
         </Card>
-      ) : null}
-      {profiles.length > 0 ? (
-        <div className="space-y-3">
-          <h3 className="text-sm font-medium text-slate-200">Profile</h3>
-          <ul className="grid gap-4 xl:grid-cols-2">
-            {profiles.map((item) => (
-              <FindingCard
-                key={item.id}
-                item={item}
-                visibility={visibilityFor(item, visibilityOverride)}
-                deletionRequestedAt={item.deletionRequestedAt ?? deletedIds[item.id] ?? null}
-                busy={pending && pendingId === item.id}
-                onVisibility={(visibility) => changeVisibility(item, visibility)}
-                onDelete={() => requestDeletion(item)}
-              />
-            ))}
-          </ul>
-        </div>
       ) : null}
       {groups.map((group) => {
           const meta = CATEGORY_META[group.category];

@@ -3,6 +3,7 @@ import { FindingsFeed } from "@/components/dashboard/findings-feed";
 import { HealthScoreCard } from "@/components/dashboard/health-score";
 import { PersonBar } from "@/components/dashboard/person-bar";
 import { ScanPanel } from "@/components/dashboard/scan-panel";
+import { EnrollPerson } from "@/components/identity/enroll-person";
 import { getDashboard } from "@/lib/services/profile";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +13,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <EnrollPerson />
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-accent">Personenansicht</p>

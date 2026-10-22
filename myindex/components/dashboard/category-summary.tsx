@@ -11,7 +11,7 @@ export function CategorySummary({ counts }: { counts: Record<FootprintCategory, 
 
   return (
     <section aria-label="Spuren nach Rubrik" className="flex flex-wrap gap-2">
-      {CATEGORY_ORDER.map((category) => {
+      {CATEGORY_ORDER.filter((category) => category !== "DATA_LEAK" || counts[category] > 0).map((category) => {
         const meta = CATEGORY_META[category];
         const selected = active === category;
         const count = counts[category];

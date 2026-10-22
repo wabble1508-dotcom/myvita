@@ -2,7 +2,7 @@ import type { ScanInput } from "@/lib/validators";
 import type { RawHit } from "@/lib/services/normalizer";
 
 const USER_AGENT = "Mozilla/5.0 (compatible; MyVita/0.1; public name search)";
-const RESULT_CAP = 120;
+const RESULT_CAP = 200;
 const STOP_WORDS = new Set(["von", "van", "de", "del", "der", "die", "den", "und", "and", "da", "dos", "di", "la", "le", "bin", "al"]);
 
 const BLOCKED_HOST_PARTS = [
@@ -113,14 +113,45 @@ export function parseDuckDuckGo(html: string): Array<{ url: string; title: strin
 function queryPlans(name: string, handle: string | undefined, email: string | undefined): QueryPlan[] {
   const quoted = `"${name}"`;
   const plans: QueryPlan[] = [
-    { label: "Websuche", q: quoted, kl: "wt-wt", pages: 3, mode: "name" },
+    {
+      label: "Social Media",
+      q: `${quoted} (site:instagram.com OR site:facebook.com OR site:tiktok.com OR site:x.com OR site:twitter.com OR site:threads.net OR site:bsky.app OR site:linkedin.com OR site:xing.com)`,
+      kl: "wt-wt",
+      pages: 1,
+      mode: "name",
+    },
+    {
+      label: "Video und Foren",
+      q: `${quoted} (site:youtube.com OR site:vimeo.com OR site:twitch.tv OR site:reddit.com OR site:pinterest.com)`,
+      kl: "wt-wt",
+      pages: 1,
+      mode: "name",
+    },
+    {
+      label: "Zeitungen Deutschland",
+      q: `${quoted} (site:spiegel.de OR site:zeit.de OR site:faz.net OR site:sueddeutsche.de OR site:tagesschau.de OR site:welt.de OR site:bild.de OR site:taz.de OR site:handelsblatt.com OR site:n-tv.de OR site:focus.de OR site:stern.de)`,
+      kl: "de-de",
+      pages: 1,
+      mode: "name",
+    },
+    {
+      label: "Zeitungen international",
+      q: `${quoted} (site:bbc.com OR site:bbc.co.uk OR site:reuters.com OR site:nytimes.com OR site:theguardian.com OR site:cnn.com OR site:apnews.com OR site:bloomberg.com OR site:forbes.com OR site:washingtonpost.com)`,
+      kl: "wt-wt",
+      pages: 1,
+      mode: "name",
+    },
+    {
+      label: "Nachrichten",
+      q: `${quoted} (Zeitung OR Nachrichten OR Artikel OR Meldung OR Interview OR Presse)`,
+      kl: "de-de",
+      pages: 1,
+      mode: "name",
+    },
+    { label: "Websuche", q: quoted, kl: "wt-wt", pages: 2, mode: "name" },
     { label: "Websuche Deutschland", q: quoted, kl: "de-de", pages: 1, mode: "name" },
-    { label: "Websuche Profile", q: `${quoted} (Profil OR profile OR Interview OR Biografie OR biography)`, kl: "wt-wt", pages: 1, mode: "name" },
-    { label: "LinkedIn", q: `${quoted} site:linkedin.com/in`, kl: "wt-wt", pages: 1, mode: "name" },
-    { label: "GitHub-Seiten", q: `${quoted} site:github.com`, kl: "wt-wt", pages: 1, mode: "name" },
-    { label: "YouTube", q: `${quoted} site:youtube.com`, kl: "wt-wt", pages: 1, mode: "name" },
-    { label: "X", q: `${quoted} (site:x.com OR site:twitter.com)`, kl: "wt-wt", pages: 1, mode: "name" },
     { label: "Wikipedia-Seiten", q: `${quoted} site:wikipedia.org`, kl: "wt-wt", pages: 1, mode: "name" },
+    { label: "GitHub-Seiten", q: `${quoted} site:github.com`, kl: "wt-wt", pages: 1, mode: "name" },
   ];
   if (handle) plans.push({ label: "Handle", q: `"${handle}"`, kl: "wt-wt", pages: 1, mode: "handle" });
   if (email) plans.push({ label: "E-Mail", q: `"${email}"`, kl: "wt-wt", pages: 1, mode: "email" });
