@@ -42,7 +42,7 @@ export default function HomePage() {
       </div>
       <ul className="grid gap-3 border-t border-white/10 py-8 sm:grid-cols-3">
         <Point icon={FingerprintPattern} title="Eigene ID" text="Der Abruf läuft über die ID. Ein gleicher Name bleibt eine andere Person." />
-        <Point icon={Shield} title="Nach Quelle sortiert" text="Social Media, Zeitungen, Nachrichten, Beruf und weitere öffentliche Seiten. Leere Rubriken bleiben leer." />
+        <Point icon={Shield} title="Nach Quelle sortiert" text="Social Media, Bilder, Videos, Zeitungen, Nachrichten und weitere öffentliche Seiten. Leere Rubriken bleiben leer." />
         <Point icon={Link2} title="Ein Link, den man schicken kann" text="24 Stunden, 7 Tage oder 30 Tage. Der Link zeigt eine Auswahl der gespeicherten öffentlichen Seiten." />
       </ul>
     </main>

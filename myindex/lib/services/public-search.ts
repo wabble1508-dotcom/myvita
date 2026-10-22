@@ -39,11 +39,11 @@ type QueryPlan = {
   mode: "name" | "handle" | "email";
 };
 
-type ParsedResult = { url: string; title: string; snippet: string };
+type ParsedResult = { url: string; title: string; snippet: string; image?: string };
 
 /**
  * Liest öffentliche Treffer zu einem Namen.
- * Websuche über einen erreichbaren Index, Nachrichten, Wikipedia, GitHub, OpenAlex und Hacker News.
+ * Websuche, Nachrichten, Bilder, Videos, Social Media, Wikipedia, GitHub, OpenAlex und Hacker News.
  * Passwort- und Datenleck-Seiten werden verworfen.
  */
 export async function searchPublicWeb(input: ScanInput): Promise<PublicSearchResult> {
@@ -52,6 +52,9 @@ export async function searchPublicWeb(input: ScanInput): Promise<PublicSearchRes
   const email = input.email?.trim();
   const plans = queryPlans(name, handle, email);
   const jobs = [
+    runLabeled("Bilder", () => searchBingImages(name)),
+    runLabeled("Videos", () => searchBingVideos(name)),
+    runLabeled("Social Media", () => searchBingSocial(name)),
     runLabeled("Websuche", () => searchBingWeb(name)),
     runLabeled("Nachrichten", () => searchBingNews(name)),
     ...plans.map((plan) => runLabeled(plan.label, () => searchDuckDuckGo(plan, name, handle, email))),
@@ -162,6 +165,51 @@ export function parseBingNews(html: string): ParsedResult[] {
   return parsed;
 }
 
+export function parseBingImages(html: string): ParsedResult[] {
+  return parseVisualTiles(html, "m", "t", "purl", "murl");
+}
+
+export function parseBingVideos(html: string): ParsedResult[] {
+  return parseVisualTiles(html, "vrhm", "vt", "pgurl", "smturl");
+}
+
+function parseVisualTiles(html: string, attr: string, titleKey: string, pageKey: string, imageKey: string): ParsedResult[] {
+  const parsed: ParsedResult[] = [];
+  for (const data of embeddedObjects(html, attr)) {
+    const title = textField(data, titleKey);
+    const page = textField(data, pageKey) || textField(data, "murl");
+    const image = textField(data, imageKey);
+    const url = page ? unwrapBing(page) : null;
+    if (!url || !title || isBlockedUrl(url)) continue;
+    const imageUrl = image ? publicImageUrl(image) : null;
+    parsed.push({
+      url,
+      title,
+      snippet: title,
+      image: imageUrl && imageUrl !== url ? imageUrl : undefined,
+    });
+  }
+  return parsed;
+}
+
+function embeddedObjects(html: string, attr: string): Array<Record<string, unknown>> {
+  const objects: Array<Record<string, unknown>> = [];
+  for (const match of html.matchAll(new RegExp(`\\b${attr}="([^"]*)"`, "g"))) {
+    try {
+      const data = JSON.parse(decodeHtml(match[1])) as unknown;
+      if (data && typeof data === "object" && !Array.isArray(data)) objects.push(data as Record<string, unknown>);
+    } catch {
+      continue;
+    }
+  }
+  return objects;
+}
+
+function textField(data: Record<string, unknown>, key: string): string {
+  const value = data[key];
+  return typeof value === "string" ? decodeHtml(value) : "";
+}
+
 export function parseDuckDuckGo(html: string): Array<{ url: string; title: string; snippet: string }> {
   const titles = [...html.matchAll(/class="result__a"[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)];
   const snippets = [...html.matchAll(/class="result__snippet"[^>]*>([\s\S]*?)<\/a>/gi)];
@@ -263,6 +311,67 @@ async function searchBingNews(name: string): Promise<RawHit[]> {
       );
       const page = acceptBingPage(parseBingNews(html), parts);
       for (const result of page) hits.push(toHit(result.url, result.title, result.snippet, market.source, name));
+    } catch (error) {
+      failure = error;
+    }
+  }
+  if (hits.length === 0 && failure) throw failure;
+  return hits;
+}
+
+async function searchBingImages(name: string): Promise<RawHit[]> {
+  return searchVisual(name, "Bilder", (query) =>
+    fetchText(
+      `https://www.bing.com/images/async?q=${encodeURIComponent(query)}&first=1&count=35&mmasync=1&setlang=de`,
+      { userAgent: BROWSER_UA },
+    ).then(parseBingImages),
+  );
+}
+
+async function searchBingVideos(name: string): Promise<RawHit[]> {
+  return searchVisual(name, "Videos", (query) =>
+    fetchText(`https://www.bing.com/videos/search?q=${encodeURIComponent(query)}&setlang=de`, {
+      userAgent: BROWSER_UA,
+    }).then(parseBingVideos),
+  );
+}
+
+async function searchVisual(
+  name: string,
+  source: string,
+  load: (query: string) => Promise<ParsedResult[]>,
+): Promise<RawHit[]> {
+  const parts = nameParts(name);
+  let failure: unknown;
+  for (const query of [`"${name}"`, name]) {
+    try {
+      const page = acceptBingPage(await load(query), parts);
+      if (page.length > 0) {
+        return page.map((result) =>
+          toHit(result.url, result.title, result.snippet, source, name, result.image ? [{ label: "Bild", value: result.image }] : []),
+        );
+      }
+    } catch (error) {
+      failure = error;
+    }
+  }
+  if (failure) throw failure;
+  return [];
+}
+
+async function searchBingSocial(name: string): Promise<RawHit[]> {
+  const parts = nameParts(name);
+  const queries = [
+    `"${name}" site:linkedin.com`,
+    `"${name}" (site:instagram.com OR site:facebook.com OR site:xing.com OR site:x.com OR site:twitter.com)`,
+    `"${name}" site:youtube.com`,
+  ];
+  const hits: RawHit[] = [];
+  let failure: unknown;
+  for (const query of queries) {
+    try {
+      const page = acceptBingPage(await fetchBingWeb(query, "de", "DE"), parts);
+      for (const result of page) hits.push(toHit(result.url, result.title, result.snippet, "Social Media", name));
     } catch (error) {
       failure = error;
     }
@@ -453,18 +562,47 @@ function toHit(
   extra: RawHit["facts"] = [],
 ): RawHit {
   const text = snippet.trim() || title.trim();
+  const facts: RawHit["facts"] = [
+    { label: "Herkunft", value: "Öffentliche Websuche" },
+    { label: "Quelle", value: source },
+    { label: "Suchbegriff", value: query },
+    { label: "Textstelle", value: text },
+    ...extra,
+  ];
+  const still = facts.some((fact) => fact.label === "Bild") ? null : youtubeStill(url);
+  if (still) facts.push({ label: "Bild", value: still });
   return {
     url,
     title: title.trim(),
     snippet: text,
-    facts: [
-      { label: "Herkunft", value: "Öffentliche Websuche" },
-      { label: "Quelle", value: source },
-      { label: "Suchbegriff", value: query },
-      { label: "Textstelle", value: text },
-      ...extra,
-    ],
+    facts,
   };
+}
+
+function youtubeStill(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./, "");
+    const id = host === "youtu.be" ? parsed.pathname.slice(1) : host.endsWith("youtube.com") ? parsed.searchParams.get("v") : null;
+    if (!id || !/^[A-Za-z0-9_-]{6,}$/.test(id)) return null;
+    return `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+  } catch {
+    return null;
+  }
+}
+
+function publicImageUrl(raw: string): string | null {
+  try {
+    const absolute = raw.startsWith("//") ? `https:${raw}` : raw;
+    const url = canonicalUrl(new URL(absolute, "https://www.bing.com").toString());
+    if (!url) return null;
+    const host = new URL(url).hostname;
+    if (host === "th.bing.com" || host.endsWith(".bing.net") || host === "i.ytimg.com") return url;
+    if (isBlockedUrl(url)) return null;
+    return url;
+  } catch {
+    return null;
+  }
 }
 
 function unwrapBing(href: string): string | null {

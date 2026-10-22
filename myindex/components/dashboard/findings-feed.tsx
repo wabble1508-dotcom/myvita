@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { platformOf } from "@/lib/domain/platforms";
 import { FactList } from "@/components/profile/fact-list";
 import { PlatformFace } from "@/components/profile/platform-face";
+import { factsWithoutImage, SourceImage } from "@/components/profile/source-image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -146,10 +147,12 @@ function FindingCard({
   const meta = CATEGORY_META[item.category];
   const facts = shownFacts(item);
   const platform = platformOf(item.domain);
+  const visual = item.facts.some((fact) => fact.label === "Bild");
 
   return (
     <li>
-      <Card className={cn("flex h-full flex-col", platform ? "overflow-hidden p-0" : "p-4 sm:p-5")}>
+      <Card className={cn("flex h-full flex-col", platform || visual ? "overflow-hidden p-0" : "p-4 sm:p-5")}>
+        <SourceImage facts={item.facts} alt={item.title} />
         {platform ? (
           <>
             <PlatformFace bare domain={item.domain} title={item.title} snippet={item.snippet} facts={facts} />
@@ -161,7 +164,7 @@ function FindingCard({
             </div>
           </>
         ) : (
-          <>
+          <div className={cn(visual && "p-4 pb-0 sm:p-5 sm:pb-0")}>
             <div className="flex flex-wrap items-center gap-2">
               <Badge tone={meta.badge}>{meta.label}</Badge>
               <span className="font-mono text-xs text-slate-500">{item.domain}</span>
@@ -176,9 +179,9 @@ function FindingCard({
             <a href={item.sourceUrl} className="mt-3 inline-block break-all text-sm text-accent underline" target="_blank" rel="noreferrer">
               {item.sourceUrl}
             </a>
-          </>
+          </div>
         )}
-        <div className={cn("mt-auto flex flex-col gap-3 border-t border-white/10 sm:flex-row sm:items-center sm:justify-between", platform ? "p-4" : "pt-4")}>
+        <div className={cn("mt-auto flex flex-col gap-3 border-t border-white/10 sm:flex-row sm:items-center sm:justify-between", platform || visual ? "p-4" : "pt-4")}>
           <div role="group" aria-label={`Sichtbarkeit für ${item.title}`} className="flex rounded-full border border-white/10 bg-black/20 p-1">
             {VISIBILITY_OPTIONS.map((option) => (
               <button
@@ -200,7 +203,7 @@ function FindingCard({
             {deletionRequestedAt ? "Löschung angefragt" : "DSGVO-Löschung anfragen"}
           </Button>
         </div>
-        <p className={cn("text-xs text-slate-500", platform ? "px-4 pb-4" : "mt-3")}>
+        <p className={cn("text-xs text-slate-500", platform || visual ? "px-4 pb-4" : "mt-3")}>
           {platform ? (
             <>
               {item.domain}
@@ -222,7 +225,7 @@ function FindingCard({
 }
 
 function shownFacts(item: ItemRecord): DisplayFact[] {
-  const facts = item.facts?.length ? [...item.facts] : [];
+  const facts = factsWithoutImage(item.facts?.length ? [...item.facts] : []);
   if (item.snippet && !facts.some((fact) => fact.value === item.snippet)) {
     facts.push({ label: "Text der Seite", value: item.snippet });
   }
