@@ -1,9 +1,9 @@
-import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
-import { copyFile, mkdir, mkdtemp, rm } from "node:fs/promises";
-import { createServer } from "node:net";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import childProcess from "node:child_process";
+import fs from "node:fs";
+import fsp from "node:fs/promises";
+import net from "node:net";
+import os from "node:os";
+import path from "node:path";
 
 export type GoogleHit = {
   url: string;
@@ -52,23 +52,26 @@ const EXTRACT = `(() => {
 })()`;
 
 /**
- * Liest die öffentliche Google-Trefferliste in einem normalen Browserfenster.
+ * Liest die öffentliche Google-Trefferliste in einem frischen Browserfenster.
  * Ein Captcha oder eine leere Seite liefert keine Treffer und wird nicht umgangen.
  */
 export async function googleSearch(name: string, accept: (text: string) => boolean): Promise<GoogleHit[]> {
+  return searchSpawned(name, accept);
+}
+
+async function searchSpawned(name: string, accept: (text: string) => boolean): Promise<GoogleHit[]> {
   const chrome = findChrome();
   if (!chrome) throw new Error("leer");
   const port = await freePort();
-  const dir = await mkdtemp(join(tmpdir(), "myvita-chrome-"));
-  await seedProfile(dir);
+  const dir = await fsp.mkdtemp(path.join(os.tmpdir(), "myvita-chrome-"));
   const display = chromeDisplay();
-  const child = spawn(
-    chrome,
+  const child = childProcess.spawn(/* turbopackIgnore: true */ chrome,
     [
       ...(display ? [] : ["--headless=new"]),
       "--no-sandbox",
       "--disable-dev-shm-usage",
       "--disable-gpu",
+      "--password-store=basic",
       "--no-first-run",
       "--no-default-browser-check",
       "--disable-extensions",
@@ -124,12 +127,13 @@ export async function googleSearch(name: string, accept: (text: string) => boole
     clearTimeout(timer);
     kill();
     await sleep(200);
-    await rm(dir, { recursive: true, force: true }).catch(() => undefined);
+    await fsp.rm(dir, { recursive: true, force: true }).catch(() => undefined);
   }
 }
 
 function googleUrl(query: string): string {
-  return `https://www.google.de/search?q=${encodeURIComponent(query)}&hl=de&gl=de&num=10&pws=0&nfpr=1`;
+  // udm=14 ist die Webliste. Die Standardansicht ersetzt den Namen durch eine ähnliche Schreibweise.
+  return `https://www.google.de/search?q=${encodeURIComponent(query)}&hl=de&gl=de&num=20&pws=0&nfpr=1&udm=14`;
 }
 
 async function readSearch(
@@ -159,7 +163,7 @@ async function readSearch(
 
 async function readOpenPage(tab: Cdp, browser: Cdp, accept: (text: string) => boolean): Promise<GoogleHit[]> {
   const started = Date.now();
-  while (Date.now() - started < 8_000) {
+  while (Date.now() - started < 12_000) {
     const state = await pageState(tab);
     if (state === "captcha") return [];
     if (state === "ready") return acceptBlocks(tab, browser, accept);
@@ -246,10 +250,15 @@ function redirectTarget(url: URL): string | null {
 
 async function pageState(tab: Cdp): Promise<"captcha" | "ready" | "wait"> {
   const text = await tab.send("Runtime.evaluate", {
-    expression: `document.body ? document.body.innerText.slice(0, 500) : ""`,
+    expression: `(() => {
+      const button = [...document.querySelectorAll("button")].find((el) => /alle akzeptieren|accept all|ich stimme zu/i.test(el.innerText || ""));
+      if (button) { button.click(); return "consent"; }
+      return document.body ? document.body.innerText.slice(0, 500) : "";
+    })()`,
     returnByValue: true,
   });
   const body = String(text.result?.value ?? "");
+  if (body === "consent") return "wait";
   if (/ungewöhnlichen Datenverkehr|unusual traffic|Our systems have detected|captcha-form|enablejs/i.test(body)) return "captcha";
   const count = await tab.send("Runtime.evaluate", {
     expression: `document.querySelectorAll("h3").length`,
@@ -258,42 +267,27 @@ async function pageState(tab: Cdp): Promise<"captcha" | "ready" | "wait"> {
   return Number(count.result?.value) > 0 ? "ready" : "wait";
 }
 
-function dedupe(hits: GoogleHit[]): GoogleHit[] {
-  const seen = new Set<string>();
-  const unique: GoogleHit[] = [];
-  for (const hit of hits) {
-    const key = hit.url.replace(/\/$/, "");
-    if (seen.has(key)) continue;
-    seen.add(key);
-    unique.push(hit);
-  }
-  return unique;
-}
-
-/** Ein bestehendes Chrome-Profil liefert die öffentliche Trefferliste, ein leeres Profil oft nur ähnlich klingende Namen. */
-async function seedProfile(dir: string): Promise<void> {
-  const source = process.env.CHROME_USER_DATA || "/home/ubuntu/.config/google-chrome";
-  const cookies = join(source, "Default", "Cookies");
-  if (!existsSync(cookies)) return;
-  await mkdir(join(dir, "Default"), { recursive: true });
-  await copyFile(cookies, join(dir, "Default", "Cookies")).catch(() => undefined);
-}
-
 function findChrome(): string | null {
-  const candidates = [process.env.CHROME_PATH, "/usr/local/bin/google-chrome", "/usr/bin/google-chrome", "/usr/bin/chromium"];
-  return candidates.find((path) => path && existsSync(path)) ?? null;
+  const candidates = [
+    process.env.CHROME_PATH,
+    "/opt/google/chrome/chrome",
+    "/usr/bin/google-chrome-stable",
+    "/usr/bin/google-chrome",
+    "/usr/bin/chromium",
+  ];
+  return candidates.find((candidate) => candidate && fs.existsSync(candidate)) ?? null;
 }
 
 function chromeDisplay(): string | undefined {
   if (process.env.DISPLAY) return process.env.DISPLAY;
-  if (existsSync("/tmp/.X11-unix/X1")) return ":1";
-  if (existsSync("/tmp/.X11-unix/X0")) return ":0";
+  if (fs.existsSync("/tmp/.X11-unix/X1")) return ":1";
+  if (fs.existsSync("/tmp/.X11-unix/X0")) return ":0";
   return undefined;
 }
 
 function freePort(): Promise<number> {
   return new Promise((resolve, reject) => {
-    const server = createServer();
+    const server = net.createServer();
     server.listen(0, "127.0.0.1", () => {
       const address = server.address();
       const port = typeof address === "object" && address ? address.port : 0;
@@ -303,9 +297,9 @@ function freePort(): Promise<number> {
   });
 }
 
-async function waitForJson<T>(url: string): Promise<T> {
+async function waitForJson<T>(url: string, timeoutMs = 10_000): Promise<T> {
   const started = Date.now();
-  while (Date.now() - started < 10_000) {
+  while (Date.now() - started < timeoutMs) {
     try {
       const response = await fetch(url, { signal: AbortSignal.timeout(1000) });
       if (response.ok) return (await response.json()) as T;
@@ -367,7 +361,21 @@ function connectCdp(url: string): Promise<Cdp> {
         send(method, params) {
           const id = ++next;
           return new Promise((resolveSend, rejectSend) => {
-            pending.set(id, { resolve: resolveSend, reject: rejectSend });
+            const timer = setTimeout(() => {
+              if (!pending.has(id)) return;
+              pending.delete(id);
+              rejectSend(new Error("leer"));
+            }, 8_000);
+            pending.set(id, {
+              resolve: (value) => {
+                clearTimeout(timer);
+                resolveSend(value);
+              },
+              reject: (error) => {
+                clearTimeout(timer);
+                rejectSend(error);
+              },
+            });
             ws.send(JSON.stringify({ id, method, params }));
           });
         },
