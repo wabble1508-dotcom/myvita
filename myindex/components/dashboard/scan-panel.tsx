@@ -48,7 +48,7 @@ export function ScanPanel({ fullName }: { fullName: string; email: string }) {
       setMessage(
         created === 0
           ? found === 0
-            ? `Zu diesem Namen lag in Web, Bildern, Videos, Social Media und Nachrichten keine öffentliche Seite, auf der der volle Name steht.${sourceNote}${failureNote}`
+            ? `Zu diesem Namen lag in Google, Web, Bildern, Videos, Social Media und Nachrichten keine öffentliche Seite, auf der der volle Name steht.${sourceNote}${failureNote}`
             : `Keine neuen Seiten. ${found} Treffer lagen schon in der Sammlung oder gehören nicht hinein.${sourceNote}${failureNote}`
           : `${created} ${created === 1 ? "öffentliche Seite" : "öffentliche Seiten"} gespeichert. ${found} Treffer gelesen${skipped ? `, ${skipped} waren schon da oder gehören nicht in die Sammlung` : ""}.${sourceNote}${failureNote}`,
       );
@@ -67,7 +67,7 @@ export function ScanPanel({ fullName }: { fullName: string; email: string }) {
         Noch einmal suchen
       </div>
       <p className="mt-2 text-sm leading-6 text-slate-400">
-        Sucht für {fullName} noch einmal in Social Media, Bildern, Videos, Zeitungen und Nachrichten. Die ID bleibt gleich.
+        Sucht für {fullName} noch einmal bei Google, in Social Media, Bildern, Videos, Zeitungen und Nachrichten. Die ID bleibt gleich.
       </p>
       <form
         className="mt-5"

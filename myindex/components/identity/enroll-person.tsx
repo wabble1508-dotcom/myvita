@@ -48,7 +48,7 @@ export function EnrollPerson() {
       <label className="block">
         <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-accent">Person eintragen</span>
         <span className="mt-2 block text-sm leading-6 text-slate-400">
-          Ein Name, eine eigene ID. Danach sucht MyVita in Social Media, Bildern, Videos, Zeitungen und Nachrichten.
+          Ein Name, eine eigene ID. Danach sucht MyVita bei Google, in Social Media, Bildern, Videos, Zeitungen und Nachrichten.
         </span>
         <input
           value={name}

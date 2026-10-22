@@ -91,7 +91,7 @@ const NEWS_HOSTS = [
 ];
 
 const PROFESSIONAL_HOSTS = ["github.com", "gitlab.com", "stackoverflow.com", "wellfound.com"];
-const ACADEMIC_HOSTS = ["scholar.google.com", "researchgate.net", "orcid.org", "arxiv.org", "doi.org", "openalex.org", "semanticscholar.org"];
+const ACADEMIC_HOSTS = ["scholar.google.com", "researchgate.net", "orcid.org", "arxiv.org", "doi.org", "openalex.org", "semanticscholar.org", "ingentaconnect.com"];
 const RECORD_HOSTS = ["opencorporates.com", "sec.gov", "handelsregister.de", "companieshouse.gov.uk"];
 const LEAK_HOSTS = ["haveibeenpwned.com"];
 
@@ -104,7 +104,7 @@ const KEYWORD_RULES: Array<{ test: RegExp; category: FootprintCategory }> = [
   { test: /\b(zeitung|nachrichten|tagesschau|pressemitteilung|leiterartikel|interview|presse)\b/i, category: "MEDIA_MENTION" },
   { test: /\b(handelsregister|registereintrag|firmenbuch|filing|companies house)\b/i, category: "PUBLIC_RECORD" },
   { test: /\b(veröffentlichung|veroeffentlichung|paper|orcid|forschung|zeitschrift|doi)\b/i, category: "ACADEMIC" },
-  { test: /\b(abschluss|bachelor|master|diplom|promotion|universit\w*|hochschule|alumni)\b/i, category: "EDUCATION" },
+  { test: /\b(abschluss|bachelor|master|diplom|promotion|universit\w*|hochschule|alumni|phd|doktorandin|doktorand|postdoc)\b/i, category: "EDUCATION" },
   { test: /\b(instagram|facebook|tiktok|youtube|linkedin|social-profil)\b/i, category: "SOCIAL" },
   { test: /\b(portfolio|lebenslauf|github|ingenieur)\b/i, category: "PROFESSIONAL" },
 ];

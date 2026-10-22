@@ -17,7 +17,7 @@ import type {
 } from "@/lib/domain/types";
 import { buildPersonView, buildPublicVita, countSharedItems } from "@/lib/services/exporter";
 import { normalizeHit } from "@/lib/services/normalizer";
-import { searchPublicWeb } from "@/lib/services/public-search";
+import { searchPublicWeb, sourceKey } from "@/lib/services/public-search";
 import { countCategories, scoreIdentity } from "@/lib/services/privacy";
 import type { ProfileInput, ScanInput, ShareInput } from "@/lib/validators";
 
@@ -149,7 +149,7 @@ export async function runScan(input: ScanInput): Promise<ScanSummary> {
     person.user.updatedAt = now;
     person.profile.updatedAt = now;
 
-    const seen = new Set(person.items.map((item) => item.sourceUrl));
+    const seen = new Set(person.items.map((item) => sourceKey(item.sourceUrl) ?? item.sourceUrl));
     let createdCount = 0;
     let skipped = 0;
 
@@ -159,7 +159,8 @@ export async function runScan(input: ScanInput): Promise<ScanSummary> {
         skipped += 1;
         continue;
       }
-      if (seen.has(normalized.sourceUrl)) {
+      const key = sourceKey(normalized.sourceUrl) ?? normalized.sourceUrl;
+      if (seen.has(key)) {
         skipped += 1;
         continue;
       }
@@ -167,7 +168,7 @@ export async function runScan(input: ScanInput): Promise<ScanSummary> {
         skipped += 1;
         continue;
       }
-      seen.add(normalized.sourceUrl);
+      seen.add(key);
       person.items.push({
         ...normalized,
         id: randomUUID(),

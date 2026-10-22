@@ -1,4 +1,5 @@
 import type { ScanInput } from "@/lib/validators";
+import { googleSearch } from "@/lib/services/google-browser";
 import type { RawHit } from "@/lib/services/normalizer";
 
 const USER_AGENT = "Mozilla/5.0 (compatible; MyVita/0.1; public name search)";
@@ -43,7 +44,7 @@ type ParsedResult = { url: string; title: string; snippet: string; image?: strin
 
 /**
  * Liest öffentliche Treffer zu einem Namen.
- * Websuche, Nachrichten, Bilder, Videos, Social Media, Wikipedia, GitHub, OpenAlex und Hacker News.
+ * Google, Websuche, Nachrichten, Bilder, Videos, Social Media, Wikipedia, GitHub, OpenAlex und Hacker News.
  * Passwort- und Datenleck-Seiten werden verworfen.
  */
 export async function searchPublicWeb(input: ScanInput): Promise<PublicSearchResult> {
@@ -52,6 +53,7 @@ export async function searchPublicWeb(input: ScanInput): Promise<PublicSearchRes
   const email = input.email?.trim();
   const plans = queryPlans(name, handle, email);
   const jobs = [
+    runLabeled("Google", () => searchGoogle(name)),
     runLabeled("Bilder", () => searchBingImages(name)),
     runLabeled("Videos", () => searchBingVideos(name)),
     runLabeled("Social Media", () => searchBingSocial(name)),
@@ -273,6 +275,35 @@ function queryPlans(name: string, handle: string | undefined, email: string | un
   if (handle) plans.push({ label: "Handle", q: `"${handle}"`, kl: "wt-wt", pages: 1, mode: "handle" });
   if (email) plans.push({ label: "E-Mail", q: `"${email}"`, kl: "wt-wt", pages: 1, mode: "email" });
   return plans;
+}
+
+async function searchGoogle(name: string): Promise<RawHit[]> {
+  const parts = nameParts(name);
+  const rows = await googleSearch(name, (text) => mentionsName(text, parts));
+  const hits: RawHit[] = [];
+  for (const row of rows) {
+    const url = canonicalUrl(row.url);
+    if (!url || isBlockedUrl(url)) continue;
+    const snippet = windowAround(`${row.title}. ${row.snippet}`, parts);
+    const role = roleNearName(snippet, parts);
+    hits.push(toHit(url, row.title, snippet, "Google", name, role ? [{ label: "Rolle", value: role }] : []));
+  }
+  return hits;
+}
+
+function windowAround(text: string, parts: string[]): string {
+  const folded = fold(text);
+  const at = parts.map((part) => folded.indexOf(part)).find((index) => index >= 0) ?? -1;
+  const slice = at < 0 ? text.slice(0, 320) : text.slice(Math.max(0, at - 50), at + 220);
+  return slice.replace(/[\uE000-\uF8FF]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function roleNearName(text: string, parts: string[]): string | null {
+  const folded = fold(text);
+  const at = folded.indexOf(parts.join(" "));
+  const slice = at >= 0 ? text.slice(at, at + 90) : text;
+  const role = slice.match(/\b(PhD student|Doktorandin|Doktorand|Postdoc|Professorin|Professor)\b/i);
+  return role ? role[1] : null;
 }
 
 async function searchBingWeb(name: string): Promise<RawHit[]> {
@@ -652,7 +683,7 @@ function canonicalUrl(raw: string): string | null {
     for (const key of [...url.searchParams.keys()]) {
       if (key.startsWith("utm_") || key === "fbclid" || key === "gclid") url.searchParams.delete(key);
     }
-    url.hostname = url.hostname.replace(/^www\./i, "").toLowerCase();
+    url.hostname = url.hostname.toLowerCase();
     if (url.pathname.length > 1) url.pathname = url.pathname.replace(/\/+$/, "");
     return url.toString();
   } catch {
@@ -660,8 +691,17 @@ function canonicalUrl(raw: string): string | null {
   }
 }
 
+/** Gleicher Schlüssel für www und ohne www, damit dieselbe Seite nicht doppelt liegt. */
+export function sourceKey(raw: string): string | null {
+  const canonical = canonicalUrl(raw);
+  if (!canonical) return null;
+  const url = new URL(canonical);
+  url.hostname = url.hostname.replace(/^www\./i, "");
+  return url.toString();
+}
+
 function canonicalKey(raw: string): string | null {
-  return canonicalUrl(raw);
+  return sourceKey(raw);
 }
 
 function isBlockedUrl(raw: string): boolean {
