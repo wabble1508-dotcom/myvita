@@ -2,6 +2,8 @@ import type { ScanInput } from "@/lib/validators";
 import type { RawHit } from "@/lib/services/normalizer";
 
 const USER_AGENT = "Mozilla/5.0 (compatible; MyVita/0.1; public name search)";
+const BROWSER_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 const RESULT_CAP = 200;
 const STOP_WORDS = new Set(["von", "van", "de", "del", "der", "die", "den", "und", "and", "da", "dos", "di", "la", "le", "bin", "al"]);
 
@@ -37,9 +39,11 @@ type QueryPlan = {
   mode: "name" | "handle" | "email";
 };
 
+type ParsedResult = { url: string; title: string; snippet: string };
+
 /**
  * Liest öffentliche Treffer zu einem Namen.
- * Websuche, Wikipedia, GitHub, OpenAlex und Hacker News.
+ * Websuche über einen erreichbaren Index, Nachrichten, Wikipedia, GitHub, OpenAlex und Hacker News.
  * Passwort- und Datenleck-Seiten werden verworfen.
  */
 export async function searchPublicWeb(input: ScanInput): Promise<PublicSearchResult> {
@@ -48,25 +52,32 @@ export async function searchPublicWeb(input: ScanInput): Promise<PublicSearchRes
   const email = input.email?.trim();
   const plans = queryPlans(name, handle, email);
   const jobs = [
+    runLabeled("Websuche", () => searchBingWeb(name)),
+    runLabeled("Nachrichten", () => searchBingNews(name)),
     ...plans.map((plan) => runLabeled(plan.label, () => searchDuckDuckGo(plan, name, handle, email))),
     runLabeled("Wikipedia", () => searchWikipedia(name)),
     runLabeled("GitHub", () => searchGitHub(name)),
     runLabeled("OpenAlex", () => searchOpenAlex(name)),
     runLabeled("Hacker News", () => searchHackerNews(name)),
   ];
+  if (handle) jobs.push(runLabeled("Handle", () => searchBingExact(handle, "Handle")));
+  if (email) jobs.push(runLabeled("E-Mail", () => searchBingExact(email, "E-Mail")));
 
   const settled = await mapPool(jobs, 4, (job) => job);
   const hits: RawHit[] = [];
   const seen = new Set<string>();
   const sources: string[] = [];
   const failures: string[] = [];
+  let reached = false;
 
   for (const result of settled) {
+    if (result.error === "leer") continue;
     if (result.error) {
       failures.push(result.label);
       continue;
     }
-    sources.push(result.label);
+    reached = true;
+    if (result.hits.length > 0) sources.push(result.label);
     for (const hit of result.hits) {
       if (hits.length >= RESULT_CAP) break;
       const key = canonicalKey(hit.url);
@@ -76,6 +87,7 @@ export async function searchPublicWeb(input: ScanInput): Promise<PublicSearchRes
     }
   }
 
+  if (sources.length === 0 && reached) sources.push("Websuche");
   return { hits, sources, failures };
 }
 
@@ -91,6 +103,63 @@ export function mentionsAll(haystack: string, parts: string[]): boolean {
   if (parts.length === 0) return false;
   const text = fold(haystack);
   return parts.every((part) => text.includes(part));
+}
+
+/** Der volle Name steht beieinander, auch in umgekehrter Reihenfolge. */
+export function mentionsName(haystack: string, parts: string[]): boolean {
+  if (!mentionsAll(haystack, parts)) return false;
+  if (parts.length < 2) return true;
+  const text = fold(haystack);
+  return partsInOrder(text, parts) || partsInOrder(text, [...parts].reverse());
+}
+
+export function parseBingRss(xml: string): ParsedResult[] {
+  const parsed: ParsedResult[] = [];
+  for (const item of xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)) {
+    const title = xmlTag(item[1], "title");
+    const link = xmlTag(item[1], "link");
+    const description = xmlTag(item[1], "description");
+    const url = link ? unwrapBing(link) : null;
+    if (!url || !title || isBlockedUrl(url)) continue;
+    parsed.push({ url, title: decodeHtml(title), snippet: description ? decodeHtml(description) : "" });
+  }
+  return parsed;
+}
+
+export function parseBingHtml(html: string): ParsedResult[] {
+  const parsed: ParsedResult[] = [];
+  for (const block of html.split(/<li class="b_algo"/i).slice(1)) {
+    const heading = block.match(/<h2>([\s\S]*?)<\/h2>/i);
+    const link = heading?.[1].match(/href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/i);
+    if (!link) continue;
+    const url = unwrapBing(decodeAttr(link[1]));
+    const title = decodeHtml(link[2]);
+    const caption = block.match(/<p class="b_lineclamp\d"[^>]*>([\s\S]*?)<\/p>/i);
+    if (!url || !title || isBlockedUrl(url)) continue;
+    parsed.push({ url, title, snippet: caption ? decodeHtml(caption[1]) : "" });
+  }
+  return parsed;
+}
+
+export function parseBingNews(html: string): ParsedResult[] {
+  const parsed: ParsedResult[] = [];
+  for (const match of html.matchAll(/<a\b([^>]*\bclass="title"[^>]*)>([\s\S]*?)<\/a>/gi)) {
+    const href = attr(match[1], "href");
+    const heading = match[2].match(/<h2[^>]*>([\s\S]*?)<\/h2>/i);
+    if (!href || !heading || match.index == null) continue;
+    const url = unwrapBing(href);
+    const title = decodeHtml(heading[1]);
+    const nearby = html.slice(match.index, match.index + 1500);
+    const snippetAttr = nearby.match(/class="snippet"[^>]*\btitle="([^"]*)"/i);
+    const snippetBody = nearby.match(/class="snippet"[^>]*>([\s\S]*?)<\/div>/i);
+    if (!url || !title || isBlockedUrl(url)) continue;
+    parsed.push({
+      url,
+      title,
+      snippet: decodeHtml(snippetAttr?.[1] ?? snippetBody?.[1] ?? ""),
+    });
+  }
+  return parsed;
 }
 
 export function parseDuckDuckGo(html: string): Array<{ url: string; title: string; snippet: string }> {
@@ -148,7 +217,7 @@ function queryPlans(name: string, handle: string | undefined, email: string | un
       pages: 1,
       mode: "name",
     },
-    { label: "Websuche", q: quoted, kl: "wt-wt", pages: 2, mode: "name" },
+    { label: "Weitere Webseiten", q: quoted, kl: "wt-wt", pages: 2, mode: "name" },
     { label: "Websuche Deutschland", q: quoted, kl: "de-de", pages: 1, mode: "name" },
     { label: "Wikipedia-Seiten", q: `${quoted} site:wikipedia.org`, kl: "wt-wt", pages: 1, mode: "name" },
     { label: "GitHub-Seiten", q: `${quoted} site:github.com`, kl: "wt-wt", pages: 1, mode: "name" },
@@ -158,12 +227,105 @@ function queryPlans(name: string, handle: string | undefined, email: string | un
   return plans;
 }
 
+async function searchBingWeb(name: string): Promise<RawHit[]> {
+  const parts = nameParts(name);
+  const markets = [
+    { source: "Websuche", setlang: "de", cc: "DE" },
+    { source: "Websuche international", setlang: "en", cc: "US" },
+  ];
+  const hits: RawHit[] = [];
+  let failure: unknown;
+  for (const market of markets) {
+    try {
+      const page = acceptBingPage(await fetchBingWeb(name, market.setlang, market.cc), parts);
+      for (const result of page) hits.push(toHit(result.url, result.title, result.snippet, market.source, name));
+    } catch (error) {
+      failure = error;
+    }
+  }
+  if (hits.length === 0 && failure) throw failure;
+  return hits;
+}
+
+async function searchBingNews(name: string): Promise<RawHit[]> {
+  const parts = nameParts(name);
+  const markets = [
+    { source: "Nachrichten", setlang: "de", cc: "DE" },
+    { source: "Nachrichten international", setlang: "en", cc: "US" },
+  ];
+  const hits: RawHit[] = [];
+  let failure: unknown;
+  for (const market of markets) {
+    try {
+      const html = await fetchText(
+        `https://www.bing.com/news/search?q=${encodeURIComponent(name)}&setlang=${market.setlang}&cc=${market.cc}`,
+        { userAgent: BROWSER_UA },
+      );
+      const page = acceptBingPage(parseBingNews(html), parts);
+      for (const result of page) hits.push(toHit(result.url, result.title, result.snippet, market.source, name));
+    } catch (error) {
+      failure = error;
+    }
+  }
+  if (hits.length === 0 && failure) throw failure;
+  return hits;
+}
+
+async function searchBingExact(query: string, source: string): Promise<RawHit[]> {
+  const needle = fold(query);
+  const page = await fetchBingWeb(`"${query}"`, "de", "DE");
+  return page
+    .filter((result) => fold(`${result.title} ${result.snippet} ${result.url}`).includes(needle))
+    .map((result) => toHit(result.url, result.title, result.snippet, source, query));
+}
+
+async function fetchBingWeb(query: string, setlang: string, cc: string): Promise<ParsedResult[]> {
+  const xml = await fetchText(
+    `https://www.bing.com/search?format=rss&q=${encodeURIComponent(query)}&setlang=${setlang}&cc=${cc}`,
+    { userAgent: BROWSER_UA },
+  );
+  const fromRss = parseBingRss(xml);
+  if (fromRss.length > 0) return fromRss;
+  const html = await fetchText(
+    `https://www.bing.com/search?q=${encodeURIComponent(query)}&setlang=${setlang}&cc=${cc}`,
+    { userAgent: BROWSER_UA },
+  );
+  return parseBingHtml(html);
+}
+
+function acceptBingPage(results: ParsedResult[], parts: string[]): ParsedResult[] {
+  return results.filter((result) => mentionsName(`${result.title} ${result.snippet} ${result.url}`, parts));
+}
+
+function partsInOrder(text: string, parts: string[]): boolean {
+  let from = 0;
+  let previousEnd = -1;
+  for (const part of parts) {
+    const at = text.indexOf(part, from);
+    if (at < 0) return false;
+    if (previousEnd >= 0 && at - previousEnd > 8) return false;
+    previousEnd = at + part.length;
+    from = previousEnd;
+  }
+  return true;
+}
+
 async function searchDuckDuckGo(plan: QueryPlan, name: string, handle: string | undefined, email: string | undefined): Promise<RawHit[]> {
   const parts = nameParts(name);
-  let html = await fetchText(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(plan.q)}&kl=${encodeURIComponent(plan.kl)}`);
+  let html: string;
+  try {
+    html = await fetchText(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(plan.q)}&kl=${encodeURIComponent(plan.kl)}`);
+  } catch (error) {
+    const status = error instanceof Error ? error.message : "";
+    if (status === "202" || status === "403" || status === "429") throw new Error("leer");
+    throw error;
+  }
   const hits: RawHit[] = [];
   for (let page = 0; page < plan.pages; page += 1) {
-    if (!html.includes("result__a")) break;
+    if (!html.includes("result__a")) {
+      if (hits.length === 0) throw new Error("leer");
+      break;
+    }
     for (const result of parseDuckDuckGo(html)) {
       if (!matchesPlan(plan.mode, result, parts, handle, email)) continue;
       hits.push(toHit(result.url, result.title, result.snippet, plan.label, plan.q));
@@ -195,7 +357,7 @@ async function searchWikipedia(name: string): Promise<RawHit[]> {
       if (!entry.title) continue;
       const snippet = decodeHtml(entry.snippet ?? "");
       const pageUrl = wikiUrl(lang, entry.title);
-      if (!mentionsAll(`${entry.title} ${snippet} ${pageUrl}`, parts)) continue;
+      if (!mentionsName(`${entry.title} ${snippet} ${pageUrl}`, parts)) continue;
       hits.push(toHit(pageUrl, entry.title, snippet, lang === "de" ? "Wikipedia Deutsch" : "Wikipedia Englisch", name));
     }
   }
@@ -233,7 +395,7 @@ async function searchOpenAlex(name: string): Promise<RawHit[]> {
   const hits: RawHit[] = [];
   for (const author of payload.results ?? []) {
     if (!author.id || !author.display_name) continue;
-    if (!mentionsAll(author.display_name, parts)) continue;
+    if (!mentionsName(author.display_name, parts)) continue;
     const facts = [{ label: "Name in der Quelle", value: author.display_name }];
     if (typeof author.works_count === "number") facts.push({ label: "Öffentliche Werke", value: String(author.works_count) });
     if (author.orcid) facts.push({ label: "ORCID", value: author.orcid });
@@ -263,7 +425,7 @@ async function searchHackerNews(name: string): Promise<RawHit[]> {
     const pageUrl = story.url || (story.objectID ? `https://news.ycombinator.com/item?id=${story.objectID}` : "");
     if (!pageUrl) continue;
     const snippet = decodeHtml(story.story_text ?? story.title);
-    if (!mentionsAll(`${story.title} ${snippet} ${pageUrl}`, parts)) continue;
+    if (!mentionsName(`${story.title} ${snippet} ${pageUrl}`, parts)) continue;
     hits.push(toHit(pageUrl, story.title, snippet, "Hacker News", name));
   }
   return hits;
@@ -279,7 +441,7 @@ function matchesPlan(
   const haystack = `${result.title} ${result.snippet} ${result.url}`;
   if (mode === "email") return Boolean(email) && fold(haystack).includes(fold(email ?? ""));
   if (mode === "handle") return Boolean(handle) && fold(haystack).includes(fold(handle ?? ""));
-  return mentionsAll(haystack, parts);
+  return mentionsName(haystack, parts);
 }
 
 function toHit(
@@ -303,6 +465,33 @@ function toHit(
       ...extra,
     ],
   };
+}
+
+function unwrapBing(href: string): string | null {
+  try {
+    const absolute = href.startsWith("//") ? `https:${href}` : href;
+    const url = new URL(absolute, "https://www.bing.com");
+    const token = url.searchParams.get("u");
+    if (token?.startsWith("a1")) return canonicalUrl(decodeBingToken(token));
+    const host = url.hostname.toLowerCase();
+    if (host === "bing.com" || host.endsWith(".bing.com") || host.endsWith("microsoft.com") || host.endsWith(".microsoft.com")) {
+      return null;
+    }
+    return canonicalUrl(url.toString());
+  } catch {
+    return null;
+  }
+}
+
+function decodeBingToken(token: string): string {
+  const raw = token.slice(2).replace(/-/g, "+").replace(/_/g, "/");
+  const padded = raw + "=".repeat((4 - (raw.length % 4)) % 4);
+  return Buffer.from(padded, "base64").toString("utf8");
+}
+
+function xmlTag(block: string, name: string): string | null {
+  const match = block.match(new RegExp(`<${name}>([\\s\\S]*?)</${name}>`, "i"));
+  return match ? match[1].trim() : null;
 }
 
 function unwrapDuckDuckGo(href: string): string | null {
@@ -393,16 +582,19 @@ function decodeHtml(value: string): string {
     .trim();
 }
 
-async function fetchText(url: string, init?: RequestInit): Promise<string> {
+async function fetchText(url: string, init?: RequestInit & { userAgent?: string }): Promise<string> {
+  const userAgent = init?.userAgent ?? USER_AGENT;
+  const rest = { ...init };
+  delete rest.userAgent;
   const response = await fetch(url, {
-    ...init,
+    ...rest,
     redirect: "follow",
     signal: AbortSignal.timeout(12_000),
     headers: {
-      "User-Agent": USER_AGENT,
-      Accept: "text/html,application/json;q=0.9,*/*;q=0.8",
+      "User-Agent": userAgent,
+      Accept: "text/html,application/json,application/rss+xml;q=0.9,*/*;q=0.8",
       "Accept-Language": "de,en;q=0.8",
-      ...init?.headers,
+      ...rest.headers,
     },
   });
   if (!response.ok) throw new Error(`${response.status}`);
