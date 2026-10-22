@@ -1,12 +1,25 @@
 import type { FootprintCategory } from "@/lib/domain/types";
 
+const BLOCKED_HOST_PARTS = [
+  "haveibeenpwned",
+  "dehashed",
+  "leakcheck",
+  "snusbase",
+  "intelx",
+  "weleakinfo",
+  "leak-lookup",
+  "leaklookup",
+  "psbdmp",
+  "breachforums",
+  "raidforums",
+];
+
 /**
- * Die Sammlung enthält nur Seiten, die öffentlich gefunden werden sollen.
- * Private Profile, nicht zugeordnete Seiten und Datenleck-Hinweise bleiben draußen.
+ * Die Sammlung enthält öffentliche Seiten zum Namen.
+ * Passwort- und Datenleck-Seiten bleiben draußen.
  */
 export function isPubliclyFindable(category: FootprintCategory, domain: string): boolean {
-  if (category === "DATA_LEAK" || category === "OTHER" || category === "PUBLIC_RECORD") return false;
+  if (category === "DATA_LEAK") return false;
   const host = domain.toLowerCase();
-  if (host.includes("instagram") || host.includes("facebook") || host.includes("portfolio")) return false;
-  return true;
+  return !BLOCKED_HOST_PARTS.some((part) => host.includes(part));
 }

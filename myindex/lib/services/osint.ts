@@ -3,11 +3,8 @@ import { slugify } from "@/lib/utils";
 import { type RawHit } from "@/lib/services/normalizer";
 
 /**
- * Lokaler Platzhalter für eine Suchtreffer-Liste.
- * Es geht kein Aufruf an Google, SerpAPI oder ein anderes Netz.
- * Die Treffer sind Beispielseiten, wie sie zu einem Namen im Netz liegen können.
- * Jede Seite wird danach in eine Rubrik sortiert. Studium, Papers, private Profile
- * und Datenleck-Hinweise fehlen, weil sie nicht öffentlich gefunden werden sollen.
+ * Lokale Beispielseiten für die Startperson.
+ * Die echte Suche liegt in public-search.ts und fragt das öffentliche Web ab.
  */
 export function simulateSerp(input: ScanInput): RawHit[] {
   const slug = slugify(input.fullName);
@@ -20,6 +17,7 @@ export function simulateSerp(input: ScanInput): RawHit[] {
       title: `${name} auf LinkedIn`,
       snippet: `Öffentliche Profilseite, auf der ${name} steht.`,
       facts: [
+        { label: "Herkunft", value: "Beispiel auf diesem Rechner" },
         { label: "Seite", value: "LinkedIn-Profil" },
         { label: "Name auf der Seite", value: name },
         { label: "Text auf der Seite", value: "Kurzer öffentlicher Profiltext und ein Ort." },
@@ -31,6 +29,7 @@ export function simulateSerp(input: ScanInput): RawHit[] {
       title: `${name} auf GitHub`,
       snippet: `Öffentliche Profilseite mit Repositories zu ${name}.`,
       facts: [
+        { label: "Herkunft", value: "Beispiel auf diesem Rechner" },
         { label: "Seite", value: "GitHub-Profil" },
         { label: "Nutzername", value: `example-simulated-${handle}` },
         { label: "Text auf der Seite", value: "Bio und eine Liste öffentlicher Repositories." },
@@ -41,6 +40,7 @@ export function simulateSerp(input: ScanInput): RawHit[] {
       title: `${name} auf X`,
       snippet: `Öffentliche Profilseite mit Beiträgen von ${name}.`,
       facts: [
+        { label: "Herkunft", value: "Beispiel auf diesem Rechner" },
         { label: "Seite", value: "Profil auf X" },
         { label: "Nutzername", value: `@example_simulated_${handle}` },
         { label: "Name auf der Seite", value: name },
@@ -53,6 +53,7 @@ export function simulateSerp(input: ScanInput): RawHit[] {
       title: `Erwähnung: ${name} in einem Video`,
       snippet: `Öffentliches Video, in dem ${name} im Titel oder in der Beschreibung vorkommt.`,
       facts: [
+        { label: "Herkunft", value: "Beispiel auf diesem Rechner" },
         { label: "Seite", value: "YouTube-Video" },
         { label: "Titel", value: `Ein öffentliches Video nennt ${name}` },
         { label: "Beschreibung", value: `${name} wird in der Videobeschreibung genannt.` },
@@ -63,6 +64,7 @@ export function simulateSerp(input: ScanInput): RawHit[] {
       title: `Erwähnung: ${name} in einem lokalen Beitrag`,
       snippet: `Öffentlicher Beitrag, in dem der Name ${name} einmal vorkommt.`,
       facts: [
+        { label: "Herkunft", value: "Beispiel auf diesem Rechner" },
         { label: "Seite", value: "Lokaler Beitrag" },
         { label: "Überschrift", value: `Lokalmeldung nennt ${name}` },
         { label: "Textstelle", value: `${name} wird in einem Absatz genannt.` },

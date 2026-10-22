@@ -44,14 +44,14 @@ export default function HomePage() {
             <IdLookup />
           </div>
           <p className="mt-6 text-sm text-zinc-500">
-            Diese Version erzeugt die Beispielseiten auf deinem Rechner. Sie fragt das Live-Web noch nicht ab.
+            Die Beispielperson liegt auf diesem Rechner. Die Suche fragt das öffentliche Web ab und speichert die Seiten, auf denen der Name steht.
           </p>
         </div>
         <PreviewStage />
       </div>
       <ul className="grid gap-3 border-t border-white/10 py-8 sm:grid-cols-3">
         <Point icon={FingerprintPattern} title="Eigene ID" text="Der Abruf läuft über die ID. Ein gleicher Name bleibt eine andere Person." />
-        <Point icon={Shield} title="Nur öffentlich auffindbare Seiten" text="Gespeichert wird nur, was öffentlich gefunden werden soll. Private Profile und Datenlecks bleiben draußen." />
+        <Point icon={Shield} title="Öffentliche Seiten zum Namen" text="Die Suche sammelt, was öffentlich zum Namen zu finden ist. Passwort- und Datenleck-Seiten bleiben draußen." />
         <Point icon={Link2} title="Ein Link, den man schicken kann" text="24 Stunden, 7 Tage oder 30 Tage. Der Link zeigt eine Auswahl der gespeicherten öffentlichen Seiten." />
       </ul>
     </main>

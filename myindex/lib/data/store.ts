@@ -15,12 +15,13 @@ let queue: Promise<unknown> = Promise.resolve();
 export function readStore(): StoreData {
   ensureStore();
   try {
+    const before = fs.statSync(filePath).mtimeMs;
     const parsed: unknown = JSON.parse(fs.readFileSync(filePath, "utf8"));
     const loaded = toStore(parsed);
     if (!loaded) {
       throw new Error("Im lokalen Profil fehlen Felder. Lösch data/store.json und lade neu.");
     }
-    if (loaded.dirty) writeStore(loaded.store);
+    if (loaded.dirty && fs.statSync(filePath).mtimeMs === before) writeStore(loaded.store);
     return loaded.store;
   } catch (error) {
     if (error instanceof SyntaxError) {

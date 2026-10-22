@@ -81,7 +81,7 @@ export function FindingsFeed({ items }: { items: ItemRecord[] }) {
         <div>
           <h2 className="text-lg font-semibold text-white">Was im Netz liegt</h2>
           <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-400">
-            Jede Karte zeigt alle Angaben, die zu dieser Seite gespeichert sind. In der Sammlung liegen nur Seiten, die öffentlich gefunden werden sollen. Über die Personen-ID sind sie abrufbar.
+            Jede Karte zeigt alle Angaben, die zu dieser Seite gespeichert sind. Die Suche legt öffentliche Seiten zum Namen ab. Über die Personen-ID sind sie abrufbar.
           </p>
         </div>
         {category !== "ALL" ? (

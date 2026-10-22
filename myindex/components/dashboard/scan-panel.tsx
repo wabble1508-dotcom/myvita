@@ -10,6 +10,9 @@ import { Card } from "@/components/ui/card";
 type ScanResponse = {
   createdCount?: number;
   skipped?: number;
+  found?: number;
+  sources?: string[];
+  failures?: string[];
   error?: string;
 };
 
@@ -40,11 +43,17 @@ export function ScanPanel({ fullName, email }: { fullName: string; email: string
     onSuccess: (body) => {
       const created = body.createdCount ?? 0;
       const skipped = body.skipped ?? 0;
+      const found = body.found ?? 0;
+      const sources = (body.sources ?? []).slice(0, 6).join(", ");
+      const sourceNote = sources ? ` Quellen: ${sources}.` : "";
+      const failureNote = body.failures && body.failures.length > 0 ? " Einige Quellen haben nicht geantwortet." : "";
       setTone("ok");
       setMessage(
         created === 0
-          ? "Keine neuen Funde. Passende Beispielquellen liegen schon in der Sammlung."
-          : `${created} ${created === 1 ? "simulierten Fund" : "simulierte Funde"} einsortiert${skipped ? `, ${skipped} waren schon da oder gehören nicht in die Sammlung` : ""}. Gespeichert wird nur, was öffentlich gefunden werden soll.`,
+          ? found === 0
+            ? `Zu diesem Namen lag in den abgefragten öffentlichen Quellen nichts.${sourceNote}${failureNote}`
+            : `Keine neuen Seiten. ${found} Treffer lagen schon in der Sammlung oder gehören nicht hinein.${sourceNote}${failureNote}`
+          : `${created} ${created === 1 ? "öffentliche Seite" : "öffentliche Seiten"} gespeichert. ${found} Treffer gelesen${skipped ? `, ${skipped} waren schon da oder gehören nicht in die Sammlung` : ""}.${sourceNote}${failureNote}`,
       );
       router.refresh();
     },
@@ -58,10 +67,10 @@ export function ScanPanel({ fullName, email }: { fullName: string; email: string
     <Card className="p-6 sm:p-7">
       <div className="flex items-center gap-2 text-sm font-medium text-accent">
         <ScanSearch className="size-4" />
-        Simulierte Spurensuche
+        Öffentliche Suche
       </div>
       <p className="mt-2 text-sm leading-6 text-slate-400">
-        Die Suche gilt für die geöffnete Person. Ihre ID bleibt gleich, auch wenn der Name sich ändert. Eine weitere Person mit demselben Namen braucht eine eigene ID. Es geht noch nichts ins Netz.
+        Die Suche liest öffentliche Seiten, auf denen der Name steht: Websuche, Wikipedia, GitHub, OpenAlex und Hacker News. Mehrere Menschen können denselben Namen tragen. Die ID dieser Person bleibt gleich. Passwort- und Datenleck-Seiten werden nicht gespeichert.
       </p>
       <form
         className="mt-5 space-y-3"
@@ -75,7 +84,7 @@ export function ScanPanel({ fullName, email }: { fullName: string; email: string
         <Field label="E-Mail, optional" value={mail} onChange={setMail} type="email" autoComplete="email" />
         <Field label="Handle, optional" value={handle} onChange={setHandle} placeholder="@du" autoComplete="username" />
         <Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? "Suche läuft…" : "Spuren sammeln"}
+          {mutation.isPending ? "Suche im öffentlichen Web…" : "Alles zum Namen suchen"}
         </Button>
       </form>
       {message ? (

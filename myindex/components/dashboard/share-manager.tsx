@@ -37,7 +37,7 @@ export function ShareManager({
         <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-accent">Teilen</p>
         <h1 className="mt-2 text-3xl font-medium tracking-tight text-white">Ein Link zur Personenansicht</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-          Die feste Adresse ist die Personen-ID {profile.publicId}. Die Sammlung enthält nur Seiten, die öffentlich gefunden werden sollen. Ein Link zeigt eine Auswahl davon und läuft ab.
+          Die feste Adresse ist die Personen-ID {profile.publicId}. Die Sammlung enthält öffentliche Seiten zum Namen. Ein Link zeigt eine Auswahl davon und läuft ab.
         </p>
         <div className="mt-4">
           <CopyRow path={`/id/${profile.publicId}`} />

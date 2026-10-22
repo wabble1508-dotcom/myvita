@@ -11,8 +11,9 @@ const DOMAIN_RULES: Array<{ test: RegExp; category: FootprintCategory }> = [
   { test: /(^|\.)(scholar\.google\.com|researchgate\.net|orcid\.org|arxiv\.org|doi\.org)$/i, category: "ACADEMIC" },
   { test: /(^|\.)(uni-[a-z0-9-]+\.de|[a-z0-9-]+\.edu|[a-z0-9-]+\.ac\.uk)$/i, category: "EDUCATION" },
   { test: /(^|\.)((linkedin|xing|github|gitlab|stackoverflow|wellfound)\.com)$/i, category: "PROFESSIONAL" },
-  { test: /(^|\.)((x|twitter|instagram|facebook|tiktok)\.com|bsky\.app)$/i, category: "SOCIAL" },
-  { test: /(^|\.)((medium|substack|youtube)\.com)$/i, category: "MEDIA_MENTION" },
+  { test: /(^|\.)((x|twitter|instagram|facebook|tiktok|reddit|threads)\.com|bsky\.app)$/i, category: "SOCIAL" },
+  { test: /(^|\.)((medium|substack|youtube)\.com|(wikipedia|wikimedia|wikidata|britannica)\.org|news\.ycombinator\.com)$/i, category: "MEDIA_MENTION" },
+  { test: /(^|\.)(openalex\.org|semanticscholar\.org)$/i, category: "ACADEMIC" },
   { test: /(^|\.)((opencorporates|sec)\.com|handelsregister\.de)$/i, category: "PUBLIC_RECORD" },
   { test: /(^|\.)(haveibeenpwned\.com)$/i, category: "DATA_LEAK" },
 ];

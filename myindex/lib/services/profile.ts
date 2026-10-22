@@ -17,7 +17,7 @@ import type {
 } from "@/lib/domain/types";
 import { buildPersonView, buildPublicVita, countSharedItems } from "@/lib/services/exporter";
 import { normalizeHit } from "@/lib/services/normalizer";
-import { simulateSerp } from "@/lib/services/osint";
+import { searchPublicWeb } from "@/lib/services/public-search";
 import { countCategories, scoreIdentity } from "@/lib/services/privacy";
 import type { ProfileInput, ScanInput, ShareInput } from "@/lib/validators";
 
@@ -38,6 +38,9 @@ export type ScanSummary = {
   createdCount: number;
   skipped: number;
   total: number;
+  found: number;
+  sources: string[];
+  failures: string[];
 };
 
 export function getShareDesk(): DashboardData & {
@@ -132,8 +135,13 @@ export function switchPerson(publicId: string): Promise<void> {
   });
 }
 
-export function runScan(input: ScanInput): Promise<ScanSummary> {
-  return mutateStore((data) => {
+export async function runScan(input: ScanInput): Promise<ScanSummary> {
+  const search = await searchPublicWeb(input);
+  if (search.hits.length === 0 && search.sources.length === 0) {
+    throw new Error("Die öffentliche Suche hat keine Quelle erreicht. Versuch es gleich noch einmal.");
+  }
+
+  const stored = await mutateStore((data) => {
     const person = findActive(data);
     const now = new Date().toISOString();
     person.user.fullName = input.fullName;
@@ -145,7 +153,7 @@ export function runScan(input: ScanInput): Promise<ScanSummary> {
     let createdCount = 0;
     let skipped = 0;
 
-    for (const hit of simulateSerp(input)) {
+    for (const hit of search.hits) {
       const normalized = normalizeHit(hit, input.fullName);
       if (!isPubliclyFindable(normalized.category, normalized.domain)) {
         skipped += 1;
@@ -174,6 +182,13 @@ export function runScan(input: ScanInput): Promise<ScanSummary> {
 
     return { createdCount, skipped, total: person.items.length };
   });
+
+  return {
+    ...stored,
+    found: search.hits.length,
+    sources: search.sources,
+    failures: search.failures,
+  };
 }
 
 export function setItemVisibility(itemId: string, visibility: Visibility): Promise<void> {
