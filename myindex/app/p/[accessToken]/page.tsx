@@ -34,8 +34,8 @@ export default async function PublicVitaPage({ params }: PageProps) {
   if (page.status === "expired") {
     return (
       <Document>
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-stone-500">MyVita</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight">Dieser Link ist abgelaufen</h1>
+        <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-stone-500">MyVita</p>
+        <h1 className="mt-4 text-4xl font-medium tracking-tight">Dieser Link ist abgelaufen</h1>
         <p className="mt-4 max-w-xl text-lg leading-8 text-stone-600">
           Er endete am {formatWhen(page.expiresAt)}. Bitte die Person, die ihn geschickt hat, um einen neuen.
         </p>
@@ -47,9 +47,9 @@ export default async function PublicVitaPage({ params }: PageProps) {
 
   return (
     <Document>
-      <p className="text-xs font-medium uppercase tracking-[0.16em] text-teal-800">MyVita</p>
-      <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">{vita.fullName}</h1>
-      <p className="mt-4 font-mono text-sm text-teal-800">{vita.publicId}</p>
+      <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-stone-500">MyVita</p>
+      <h1 className="mt-4 text-4xl font-medium tracking-tight sm:text-6xl">{vita.fullName}</h1>
+      <p className="mt-5 inline-flex rounded-full border border-stone-300 bg-white px-3 py-1 font-mono text-xs">{vita.publicId}</p>
       <p className="mt-1 text-sm text-stone-500">Abruf über diese ID. Ein gleicher Name kann eine andere ID haben.</p>
       {vita.headline ? <p className="mt-3 text-xl text-stone-600">{vita.headline}</p> : null}
       <p className="mt-4 text-sm text-stone-500">{VERIFICATION_LABEL[vita.verificationLevel]}</p>
@@ -65,7 +65,7 @@ export default async function PublicVitaPage({ params }: PageProps) {
 
 function Document({ children }: { children: React.ReactNode }) {
   return (
-    <main className="min-h-screen bg-[#f6f3ec] text-stone-950">
+    <main className="vita">
       <div className="mx-auto w-full max-w-5xl px-6 py-16">{children}</div>
     </main>
   );

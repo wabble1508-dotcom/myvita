@@ -56,7 +56,7 @@ export function ScanPanel({ fullName, email }: { fullName: string; email: string
 
   return (
     <Card className="p-6 sm:p-7">
-      <div className="flex items-center gap-2 text-sm font-medium text-teal-100">
+      <div className="flex items-center gap-2 text-sm font-medium text-accent">
         <ScanSearch className="size-4" />
         Simulierte Spurensuche
       </div>
@@ -80,7 +80,7 @@ export function ScanPanel({ fullName, email }: { fullName: string; email: string
       </form>
       {message ? (
         <p
-          className={tone === "error" ? "mt-4 text-sm text-rose-100" : "mt-4 text-sm text-teal-100"}
+          className={tone === "error" ? "mt-4 text-sm text-rose-100" : "mt-4 text-sm text-accent"}
           role={tone === "error" ? "alert" : "status"}
         >
           {message}
@@ -114,7 +114,7 @@ function Field({
         placeholder={placeholder}
         autoComplete={autoComplete}
         onChange={(event) => onChange(event.target.value)}
-        className="h-11 w-full rounded-2xl border border-white/10 bg-black/25 px-3 text-sm text-slate-50 outline-none placeholder:text-slate-500 focus:border-teal-200/60"
+        className="h-11 w-full rounded-2xl border border-white/10 bg-black/25 px-3 text-sm text-slate-50 outline-none placeholder:text-slate-500 focus:border-accent/70"
       />
     </label>
   );

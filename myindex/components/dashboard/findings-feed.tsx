@@ -175,7 +175,7 @@ function FindingCard({
             <PlatformFace bare domain={item.domain} title={item.title} snippet={item.snippet} facts={facts} />
             <div className="space-y-3 p-4 pb-0">
               <FactList facts={facts} />
-              <a href={item.sourceUrl} className="inline-block text-sm text-teal-200 underline" target="_blank" rel="noreferrer">
+              <a href={item.sourceUrl} className="inline-block text-sm text-accent underline" target="_blank" rel="noreferrer">
                 {item.sourceUrl}
               </a>
             </div>
@@ -186,14 +186,14 @@ function FindingCard({
               <Badge tone={meta.badge}>{meta.label}</Badge>
               <span className="font-mono text-xs text-slate-500">{item.domain}</span>
               <span className="text-xs text-slate-500">{percent(item.confidenceScore)}</span>
-              {item.isVerifiedByOwner ? <span className="text-xs text-teal-200">Geprüft</span> : null}
+              {item.isVerifiedByOwner ? <span className="text-xs text-accent">Geprüft</span> : null}
             </div>
             <h4 className="mt-3 text-base font-medium text-white">{item.title}</h4>
             <p className="mt-4 text-[11px] font-medium uppercase tracking-[0.14em] text-slate-500">Was auf der Seite steht</p>
             <div className="mt-2">
               <FactList facts={facts} />
             </div>
-            <a href={item.sourceUrl} className="mt-3 inline-block break-all text-sm text-teal-200 underline" target="_blank" rel="noreferrer">
+            <a href={item.sourceUrl} className="mt-3 inline-block break-all text-sm text-accent underline" target="_blank" rel="noreferrer">
               {item.sourceUrl}
             </a>
           </>

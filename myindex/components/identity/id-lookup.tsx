@@ -32,7 +32,7 @@ export function IdLookup() {
           placeholder={DEMO_PUBLIC_ID}
           spellCheck={false}
           autoCapitalize="characters"
-          className="h-11 w-full rounded-2xl border border-white/10 bg-black/25 px-3 font-mono text-sm text-slate-50 outline-none placeholder:text-slate-500 focus:border-teal-200/60"
+          className="h-11 w-full rounded-2xl border border-white/10 bg-black/25 px-3 font-mono text-sm text-slate-50 outline-none placeholder:text-slate-500 focus:border-accent/70"
         />
       </label>
       <Button type="submit" variant="ghost">

@@ -39,7 +39,7 @@ export function Sidebar() {
 function Brand() {
   return (
     <Link href="/" className="flex items-center gap-2 text-sm font-semibold tracking-tight text-white">
-      <span className="flex size-8 items-center justify-center rounded-2xl bg-teal-200 text-slate-950">
+      <span className="flex size-8 items-center justify-center rounded-xl bg-accent text-ink">
         <FingerprintPattern className="size-4" />
       </span>
       MyVita
@@ -62,8 +62,8 @@ function NavLink({
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-2 rounded-2xl px-3 py-2 text-sm transition md:py-2.5",
-        active ? "bg-white/10 text-white" : "text-slate-400 hover:bg-white/5 hover:text-slate-100",
+        "flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition md:py-2.5",
+        active ? "bg-white/10 text-white" : "text-zinc-500 hover:bg-white/5 hover:text-zinc-100",
       )}
       aria-current={active ? "page" : undefined}
     >

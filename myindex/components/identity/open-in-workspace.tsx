@@ -13,7 +13,7 @@ export function OpenInWorkspace({ publicId }: { publicId: string }) {
     <div>
       <button
         type="button"
-        className="text-sm text-teal-800 underline disabled:opacity-40"
+        className="inline-flex h-10 items-center rounded-full border border-stone-300 bg-white px-4 text-sm text-ink transition hover:border-stone-950 disabled:opacity-40"
         disabled={pending}
         onClick={() => {
           setError(null);

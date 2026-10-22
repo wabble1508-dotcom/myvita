@@ -14,12 +14,12 @@ export default function OpenGraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "#070b14",
-          color: "#f8fafc",
+          background: "#090909",
+          color: "#f4f4f5",
           padding: "72px",
         }}
       >
-        <div style={{ display: "flex", fontSize: 28, letterSpacing: 6, color: "#99f6e4" }}>MYVITA</div>
+        <div style={{ display: "flex", fontSize: 28, letterSpacing: 6, color: "#f3efe6" }}>MYVITA</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <div style={{ display: "flex", fontSize: 68, fontWeight: 600, lineHeight: 1.05, maxWidth: 860 }}>
             Was im Netz zu einem Namen liegt.

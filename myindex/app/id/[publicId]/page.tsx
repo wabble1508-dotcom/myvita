@@ -37,11 +37,11 @@ export default async function PersonByIdPage({ params }: PageProps) {
   if (!person) notFound();
 
   return (
-    <main className="min-h-screen bg-[#f6f3ec] text-stone-950">
+    <main className="vita">
       <div className="mx-auto w-full max-w-5xl px-6 py-16">
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-teal-800">MyVita</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">{person.fullName}</h1>
-        <p className="mt-4 font-mono text-sm text-teal-800">{person.publicId}</p>
+        <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-stone-500">MyVita</p>
+        <h1 className="mt-4 text-4xl font-medium tracking-tight sm:text-6xl">{person.fullName}</h1>
+        <p className="mt-5 inline-flex rounded-full border border-stone-300 bg-white px-3 py-1 font-mono text-xs">{person.publicId}</p>
         <p className="mt-1 max-w-xl text-sm leading-6 text-stone-500">
           Abruf über diese ID. Ein gleicher Name kann eine andere ID haben.
         </p>

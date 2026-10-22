@@ -24,7 +24,7 @@ export function HealthScoreCard({
           <p className="mt-3 text-lg font-semibold tracking-tight text-white">{user.fullName}</p>
           <p className="mt-1 text-sm text-slate-300">{profile.headline}</p>
           <p className="mt-3 text-xs font-medium uppercase tracking-[0.14em] text-slate-500">Personen-ID</p>
-          <p className="mt-1 font-mono text-sm text-teal-100">{profile.publicId}</p>
+          <p className="mt-1 font-mono text-sm text-accent">{profile.publicId}</p>
           <p className="mt-4 max-w-xl text-sm leading-6 text-slate-300">{health.summary}</p>
         </div>
       </div>
@@ -84,7 +84,7 @@ function Meter({ label, value, detail }: { label: string; value: number; detail?
         <dd className="text-slate-200">{detail ?? `${value}%`}</dd>
       </div>
       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
-        <div className="h-full rounded-full bg-teal-200" style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
+        <div className="h-full rounded-full bg-accent" style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
       </div>
     </div>
   );

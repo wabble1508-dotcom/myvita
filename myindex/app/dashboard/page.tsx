@@ -14,8 +14,8 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-teal-200">Personenansicht</p>
-          <h1 className="mt-2 text-4xl font-semibold tracking-tight text-white">{data.user.fullName}</h1>
+          <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-accent">Personenansicht</p>
+          <h1 className="mt-2 text-4xl font-medium tracking-tight text-white">{data.user.fullName}</h1>
           <p className="mt-2 max-w-xl text-sm leading-6 text-slate-300">{data.profile.headline}</p>
         </div>
         <p className="max-w-sm text-sm leading-6 text-slate-400">

@@ -3,19 +3,28 @@
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --color-accent: #f3efe6;
+  --color-ink: #141414;
 }
 
 body {
   min-height: 100vh;
   text-rendering: optimizeLegibility;
-  background-color: #070b14;
-  background-image:
-    radial-gradient(980px 460px at 0% -10%, rgba(45, 212, 191, 0.16), transparent 58%),
-    radial-gradient(760px 420px at 100% 0%, rgba(99, 102, 241, 0.16), transparent 52%);
-  color: #e7eefc;
+  background-color: #090909;
+  background-image: radial-gradient(920px 380px at 12% -12%, rgba(243, 239, 230, 0.08), transparent 58%);
+  color: #f4f4f5;
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 ::selection {
-  background: rgba(153, 246, 228, 0.35);
+  background: rgba(243, 239, 230, 0.28);
+  color: #141414;
+}
+
+.vita {
+  min-height: 100vh;
+  background:
+    linear-gradient(#f4f4f2, #f4f4f2) padding-box,
+    linear-gradient(180deg, rgba(20, 20, 20, 0.08), transparent 180px);
+  color: #141414;
 }

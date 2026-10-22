@@ -24,7 +24,7 @@ export function CategorySummary({ counts }: { counts: Record<FootprintCategory, 
             className={cn(
               "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition",
               selected
-                ? "border-teal-200/50 bg-teal-200 text-slate-950"
+                ? "border-accent/60 bg-accent text-slate-950"
                 : "border-white/10 bg-white/[0.04] text-slate-200 hover:border-white/20",
               count === 0 && !selected && "text-slate-500",
             )}

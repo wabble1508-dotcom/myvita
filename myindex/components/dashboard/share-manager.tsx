@@ -34,8 +34,8 @@ export function ShareManager({
   return (
     <div className="space-y-8">
       <header>
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-teal-200">Teilen</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">Ein Link zur Personenansicht</h1>
+        <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-accent">Teilen</p>
+        <h1 className="mt-2 text-3xl font-medium tracking-tight text-white">Ein Link zur Personenansicht</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
           Die feste Adresse ist die Personen-ID {profile.publicId}. Die Sammlung enthält nur Seiten, die öffentlich gefunden werden sollen. Ein Link zeigt eine Auswahl davon und läuft ab.
         </p>
@@ -89,14 +89,14 @@ function ProfileForm({ user, profile }: { user: UserRecord; profile: ProfileReco
             value={bio}
             onChange={(event) => setBio(event.target.value)}
             rows={5}
-            className="w-full rounded-2xl border border-white/10 bg-black/25 px-3 py-3 text-sm leading-6 text-slate-50 outline-none focus:border-teal-200/60"
+            className="w-full rounded-2xl border border-white/10 bg-black/25 px-3 py-3 text-sm leading-6 text-slate-50 outline-none focus:border-accent/70"
           />
         </label>
         <Button type="submit" disabled={pending}>
           {pending ? "Speichert…" : "Profil speichern"}
         </Button>
         {error ? <p className="text-sm text-rose-100" role="alert">{error}</p> : null}
-        {message ? <p className="text-sm text-teal-100" role="status">{message}</p> : null}
+        {message ? <p className="text-sm text-accent" role="status">{message}</p> : null}
       </form>
     </Card>
   );
@@ -144,7 +144,7 @@ function ShareForm() {
                 key={option.value}
                 className={`cursor-pointer rounded-full border px-3 py-1.5 text-sm ${
                   expiresIn === option.value
-                    ? "border-teal-200/50 bg-teal-200 text-slate-950"
+                    ? "border-accent/60 bg-accent text-slate-950"
                     : "border-white/10 text-slate-200"
                 }`}
               >
@@ -170,7 +170,7 @@ function ShareForm() {
                   type="checkbox"
                   checked={categories.includes(category)}
                   onChange={() => toggle(category)}
-                  className="size-4 accent-teal-200"
+                  className="size-4 accent-accent"
                 />
                 {CATEGORY_META[category].label}
               </label>
@@ -260,7 +260,7 @@ function TextField({
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-11 w-full rounded-2xl border border-white/10 bg-black/25 px-3 text-sm text-slate-50 outline-none focus:border-teal-200/60"
+        className="h-11 w-full rounded-2xl border border-white/10 bg-black/25 px-3 text-sm text-slate-50 outline-none focus:border-accent/70"
       />
     </label>
   );

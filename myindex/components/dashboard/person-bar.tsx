@@ -23,7 +23,7 @@ export function PersonBar({ people, publicId }: { people: PersonSummary[]; publi
     <Card className="p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.16em] text-teal-200">Personen-ID</p>
+          <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-accent">Personen-ID</p>
           <p className="mt-2 font-mono text-2xl tracking-wide text-white">{publicId}</p>
           <p className="mt-2 max-w-xl text-sm leading-6 text-slate-400">
             Der Abruf läuft über diese ID. Derselbe Name kann bei einer anderen Person noch einmal vorkommen.
@@ -58,11 +58,11 @@ export function PersonBar({ people, publicId }: { people: PersonSummary[]; publi
               }}
               className={cn(
                 "min-w-44 rounded-2xl border px-3 py-2 text-left transition disabled:opacity-50",
-                person.active ? "border-teal-200/50 bg-teal-200/10" : "border-white/10 bg-black/20 hover:bg-white/5",
+                person.active ? "border-accent/60 bg-accent/10" : "border-white/10 bg-black/20 hover:bg-white/5",
               )}
             >
               <span className="block truncate text-sm text-white">{person.fullName}</span>
-              <span className="mt-1 block font-mono text-xs text-teal-100">{person.publicId}</span>
+              <span className="mt-1 block font-mono text-xs text-accent">{person.publicId}</span>
               {duplicated.has(person.fullName.trim().toLocaleLowerCase("de")) ? (
                 <span className="mt-1 block text-[11px] text-slate-400">Gleicher Name, andere ID</span>
               ) : null}
@@ -96,7 +96,7 @@ export function PersonBar({ people, publicId }: { people: PersonSummary[]; publi
               onChange={(event) => setName(event.target.value)}
               placeholder="Name, auch wenn er schon vorkommt"
               autoComplete="name"
-              className="h-11 w-full rounded-2xl border border-white/10 bg-black/25 px-3 text-sm text-slate-50 outline-none placeholder:text-slate-500 focus:border-teal-200/60"
+              className="h-11 w-full rounded-2xl border border-white/10 bg-black/25 px-3 text-sm text-slate-50 outline-none placeholder:text-slate-500 focus:border-accent/70"
             />
           </label>
           <Button type="submit" variant="ghost" disabled={pending}>
@@ -105,7 +105,7 @@ export function PersonBar({ people, publicId }: { people: PersonSummary[]; publi
         </form>
         <IdLookup />
       </div>
-      {message ? <p className="mt-3 text-sm text-teal-100">{message}</p> : null}
+      {message ? <p className="mt-3 text-sm text-accent">{message}</p> : null}
       {error ? (
         <p className="mt-3 text-sm text-rose-100" role="alert">
           {error}
