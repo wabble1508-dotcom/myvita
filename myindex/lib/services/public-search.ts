@@ -286,7 +286,9 @@ async function searchGoogle(name: string): Promise<RawHit[]> {
     if (!url || isBlockedUrl(url)) continue;
     const snippet = windowAround(`${row.title}. ${row.snippet}`, parts);
     const role = roleNearName(snippet, parts);
-    hits.push(toHit(url, row.title, snippet, "Google", name, role ? [{ label: "Rolle", value: role }] : []));
+    const extra = role ? [{ label: "Rolle", value: role }] : [];
+    if (row.image?.startsWith("https://")) extra.push({ label: "Bild", value: row.image });
+    hits.push(toHit(url, row.title, snippet, "Google", name, extra));
   }
   return hits;
 }

@@ -9,9 +9,10 @@ export type GoogleHit = {
   url: string;
   title: string;
   snippet: string;
+  image?: string;
 };
 
-type Block = { title: string; url: string; goto: string; text: string };
+type Block = { title: string; url: string; goto: string; text: string; image: string };
 type Target = { id?: string; type?: string; url?: string; webSocketDebuggerUrl?: string };
 
 const EXTRACT = `(() => {
@@ -46,7 +47,20 @@ const EXTRACT = `(() => {
       node = node.parentElement;
     }
     const text = ((best && best.innerText) || "").replace(/\\s+/g, " ").trim().slice(0, 700);
-    results.push({ title, url: visibleUrl(text), goto, text });
+    results.push({ title, url: visibleUrl(text), goto, text, image: photoUrl(best) });
+  }
+  function photoUrl(root) {
+    if (!root) return "";
+    for (const img of root.querySelectorAll("img")) {
+      const src = img.currentSrc || img.src || "";
+      if (!src.startsWith("https://")) continue;
+      if (/favicon|\\/icon|sprite|logo/i.test(src)) continue;
+      const w = img.naturalWidth || 0;
+      const h = img.naturalHeight || 0;
+      if ((w && w < 48) || (h && h < 48)) continue;
+      return src.slice(0, 500);
+    }
+    return "";
   }
   return JSON.stringify(results);
 })()`;
@@ -100,7 +114,7 @@ async function searchSpawned(name: string, accept: (text: string) => boolean): P
       }
     }
   };
-  const timer = setTimeout(kill, 28_000);
+  const timer = setTimeout(kill, 48_000);
   try {
     await waitForJson(`http://127.0.0.1:${port}/json/version`);
     const version = await waitForJson<{ webSocketDebuggerUrl?: string }>(`http://127.0.0.1:${port}/json/version`);
@@ -108,12 +122,19 @@ async function searchSpawned(name: string, accept: (text: string) => boolean): P
     const browser = await connectCdp(version.webSocketDebuggerUrl);
     try {
       const first = await readSearch(port, browser, accept);
-      if (first.captcha || first.hits.length > 0) return first.hits;
+      if (first.captcha) return [];
       const tab = await connectPage(port);
-      if (!tab) return [];
+      if (!tab) return first.hits;
       try {
-        await tab.send("Page.navigate", { url: googleUrl(`"${name}"`) });
-        return readOpenPage(tab, browser, accept);
+        let hits = first.hits;
+        if (hits.length === 0) {
+          await tab.send("Page.navigate", { url: googleUrl(`"${name}"`) });
+          hits = await readOpenPage(tab, browser, accept);
+        }
+        await tab.send("Page.navigate", { url: googleUrl(`"${name}" site:linkedin.com/in`) });
+        await waitForHref(tab, "site%3Alinkedin.com");
+        const profiles = await readOpenPage(tab, browser, accept);
+        return mergeHits(hits, profiles);
       } finally {
         tab.close();
       }
@@ -132,8 +153,9 @@ async function searchSpawned(name: string, accept: (text: string) => boolean): P
 }
 
 function googleUrl(query: string): string {
-  // udm=14 ist die Webliste. Die Standardansicht ersetzt den Namen durch eine ähnliche Schreibweise.
-  return `https://www.google.de/search?q=${encodeURIComponent(query)}&hl=de&gl=de&num=20&pws=0&nfpr=1&udm=14`;
+  // Dieselbe Trefferliste wie im Browser, inklusive LinkedIn-Karten und Bildern.
+  // Eine ähnliche Schreibweise bleibt draußen, weil nur der volle Name übernommen wird.
+  return `https://www.google.de/search?q=${encodeURIComponent(query)}&hl=de&gl=de&num=20&pws=0&nfpr=1`;
 }
 
 async function readSearch(
@@ -161,6 +183,15 @@ async function readSearch(
   return { hits: [], captcha: false };
 }
 
+async function waitForHref(tab: Cdp, part: string): Promise<void> {
+  const started = Date.now();
+  while (Date.now() - started < 8_000) {
+    const current = await tab.send("Runtime.evaluate", { expression: "location.href", returnByValue: true });
+    if (String(current.result?.value ?? "").includes(part)) return;
+    await sleep(200);
+  }
+}
+
 async function readOpenPage(tab: Cdp, browser: Cdp, accept: (text: string) => boolean): Promise<GoogleHit[]> {
   const started = Date.now();
   while (Date.now() - started < 12_000) {
@@ -180,14 +211,26 @@ async function acceptBlocks(tab: Cdp, browser: Cdp, accept: (text: string) => bo
     const snippet = block.text || block.title;
     if (!accept(`${block.title} ${snippet}`)) continue;
     let url = block.url;
-    if (!url && block.goto && resolved < 2) {
+    if (!url && block.goto && resolved < 5) {
       url = (await openGoto(browser, block.goto)) ?? "";
       resolved += 1;
     }
     if (!url) continue;
-    hits.push({ url, title: block.title, snippet });
+    const image = block.image?.startsWith("https://") ? block.image : undefined;
+    hits.push({ url, title: block.title, snippet, image });
   }
   return hits;
+}
+
+function mergeHits(first: GoogleHit[], second: GoogleHit[]): GoogleHit[] {
+  const seen = new Set(first.map((hit) => hit.url));
+  const merged = [...first];
+  for (const hit of second) {
+    if (seen.has(hit.url)) continue;
+    seen.add(hit.url);
+    merged.push(hit);
+  }
+  return merged;
 }
 
 async function extract(tab: Cdp): Promise<Block[]> {
@@ -208,7 +251,7 @@ async function openGoto(browser: Cdp, url: string): Promise<string | null> {
   if (!targetId) return null;
   try {
     const started = Date.now();
-    while (Date.now() - started < 8_000) {
+    while (Date.now() - started < 4_000) {
       const targets = await browser.send("Target.getTargets");
       const match = targetInfos(targets).find((entry) => entry.targetId === targetId);
       const landing = match?.url ? publicLanding(match.url) : null;
@@ -234,7 +277,7 @@ function publicLanding(href: string): string | null {
     const redirect = url.searchParams.get("sessionRedirect");
     if (redirect && /^https?:\/\//i.test(redirect)) return redirect;
     if (url.hostname.includes("google.")) return null;
-    if (url.pathname === "/authwall" || url.hostname.endsWith("linkedin.com") && url.pathname === "/login") {
+    if (url.pathname === "/authwall" || /login|checkpoint|authwall/i.test(url.pathname)) {
       return redirectTarget(url);
     }
     return url.toString();
