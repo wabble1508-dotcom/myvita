@@ -1,5 +1,6 @@
 import "server-only";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { createSeed } from "@/lib/data/seed";
 import { createPublicId } from "@/lib/domain/create-public-id";
@@ -8,20 +9,25 @@ import { isPubliclyFindable } from "@/lib/domain/public-store";
 import type { ItemRecord, PersonRecord, ProfileRecord, ShareLinkRecord, StoreData, UserRecord } from "@/lib/domain/types";
 
 const directory = path.join(process.cwd(), "data");
-const filePath = path.join(directory, "store.json");
+const bundledPath = path.join(directory, "store.json");
+let activePath = bundledPath;
+
+function storePath(): string {
+  return activePath;
+}
 
 let queue: Promise<unknown> = Promise.resolve();
 
 export function readStore(): StoreData {
   ensureStore();
   try {
-    const before = fs.statSync(filePath).mtimeMs;
-    const parsed: unknown = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    const before = fs.statSync(storePath()).mtimeMs;
+    const parsed: unknown = JSON.parse(fs.readFileSync(storePath(), "utf8"));
     const loaded = toStore(parsed);
     if (!loaded) {
       throw new Error("Im lokalen Profil fehlen Felder. Lösch data/store.json und lade neu.");
     }
-    if (loaded.dirty && fs.statSync(filePath).mtimeMs === before) writeStore(loaded.store);
+    if (loaded.dirty && fs.statSync(storePath()).mtimeMs === before) writeStore(loaded.store);
     return loaded.store;
   } catch (error) {
     if (error instanceof SyntaxError) {
@@ -46,13 +52,26 @@ export function mutateStore<T>(change: (data: StoreData) => T): Promise<T> {
 }
 
 function ensureStore(): void {
-  if (!fs.existsSync(directory)) fs.mkdirSync(directory, { recursive: true });
-  if (!fs.existsSync(filePath)) writeStore(createSeed());
+  if (fs.existsSync(storePath())) return;
+  if (storePath() !== bundledPath && fs.existsSync(bundledPath)) {
+    fs.copyFileSync(bundledPath, storePath());
+    return;
+  }
+  writeStore(createSeed());
 }
 
 function writeStore(data: StoreData): void {
-  if (!fs.existsSync(directory)) fs.mkdirSync(directory, { recursive: true });
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
+  const body = JSON.stringify(data, null, 2);
+  try {
+    const folder = path.dirname(storePath());
+    if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true });
+    fs.writeFileSync(storePath(), body, "utf8");
+  } catch (error) {
+    const code = error && typeof error === "object" && "code" in error ? String(error.code) : "";
+    if (storePath() !== bundledPath || (code !== "EROFS" && code !== "EACCES" && code !== "EPERM")) throw error;
+    activePath = path.join(os.tmpdir(), "myvita-store.json");
+    fs.writeFileSync(storePath(), body, "utf8");
+  }
 }
 
 function toStore(value: unknown): { store: StoreData; dirty: boolean } | null {
