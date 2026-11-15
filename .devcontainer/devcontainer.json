@@ -1,0 +1,14 @@
+{
+  "name": "MyVita",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
+  "workspaceFolder": "/workspaces/myvita/myindex",
+  "postCreateCommand": "npm install",
+  "postAttachCommand": "npm run dev -- --hostname 0.0.0.0",
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "MyVita",
+      "onAutoForward": "openBrowser"
+    }
+  }
+}

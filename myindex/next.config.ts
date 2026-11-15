@@ -3,8 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Footprint data changes on each action, so pages stay dynamic.
   cacheComponents: false,
-  // The temporary public address used to send the running app.
-  allowedDevOrigins: ["**.trycloudflare.com"],
+  // Temporary public addresses for the running app (tunnel and Codespaces).
+  allowedDevOrigins: ["**.trycloudflare.com", "**.app.github.dev"],
   turbopack: {
     rules: {
       "*.css": {
