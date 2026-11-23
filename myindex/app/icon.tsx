@@ -1,27 +1,9 @@
 import { ImageResponse } from "next/og";
+import { BrandTile } from "@/lib/brand-mark";
 
 export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
 
 export default function Icon() {
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#f3efe6",
-          color: "#141414",
-          fontSize: 20,
-          fontWeight: 700,
-        }}
-      >
-        M
-      </div>
-    ),
-    { ...size },
-  );
+  return new ImageResponse(<BrandTile size={22} radius={8} />, { ...size });
 }

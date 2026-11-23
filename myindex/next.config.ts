@@ -1,10 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Footprint data changes on each action, so pages stay dynamic.
   cacheComponents: false,
-  // Temporary public addresses for the running app (tunnel and Codespaces).
+  // Temporäre öffentliche Adressen beim Entwickeln (Tunnel und Codespaces).
   allowedDevOrigins: ["**.trycloudflare.com", "**.app.github.dev"],
+  experimental: {
+    // Profilfotos und Projektbilder; der Browser verkleinert sie vorher.
+    serverActions: { bodySizeLimit: "3mb" },
+  },
+  async rewrites() {
+    // Profiladressen wie /@lena.mueller zeigen die Seite unter /u/lena.mueller.
+    return [{ source: "/@:handle", destination: "/u/:handle" }];
+  },
   turbopack: {
     rules: {
       "*.css": {

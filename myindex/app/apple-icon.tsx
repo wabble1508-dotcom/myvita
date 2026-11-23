@@ -1,27 +1,10 @@
 import { ImageResponse } from "next/og";
+import { BrandTile } from "@/lib/brand-mark";
 
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
 
+// iOS rundet die Ecken selbst ab.
 export default function AppleIcon() {
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#090909",
-          color: "#f3efe6",
-          fontSize: 96,
-          fontWeight: 700,
-        }}
-      >
-        M
-      </div>
-    ),
-    { ...size },
-  );
+  return new ImageResponse(<BrandTile size={112} radius={0} />, { ...size });
 }

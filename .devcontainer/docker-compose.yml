@@ -1,0 +1,22 @@
+# Codespace mit eigener Postgres-Datenbank für MyVita.
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/javascript-node:22
+    volumes:
+      - ..:/workspaces/myvita:cached
+    command: sleep infinity
+    # Teilt das Netz mit der Datenbank, damit sie unter localhost erreichbar ist.
+    network_mode: service:db
+
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: myvita
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data:

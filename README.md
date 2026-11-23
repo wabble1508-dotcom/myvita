@@ -2,9 +2,9 @@
 
 # MyVita
 
-**Eine Ansicht für alles, was im Netz zu einem Namen liegt.**
+**Deine Vita. Alles an einem Ort.**
 
-### [▶ Live-Vorschau öffnen](https://wabble1508-dotcom.github.io/myvita/)
+Das Netzwerk für Lebenslauf, Portfolio und alle deine Kanäle.
 
 </div>
 
@@ -12,37 +12,30 @@
 
 ## Worum es geht
 
-MyVita sammelt öffentliche Seiten zu einer Person und ordnet sie übersichtlich. Man trägt einen Namen ein, MyVita vergibt eine eigene Personen-ID und sortiert die Funde nach Rubrik: Beruf, Social Media, Nachrichten, Videos und weitere öffentliche Quellen.
+Auf MyVita legt jede Person ihre eigene Vita an: Lebenslauf, Projekte und alle Kanäle wie Instagram, LinkedIn, YouTube oder TikTok, gebündelt auf einer Seite. Andere finden sie über den Namen, den @Namen oder die MyVita-ID. Für Bewerbungen gibt es private Links, die ablaufen.
 
-- **Eigene ID pro Person.** Gleiche Namen bleiben getrennte Personen.
-- **Nach Quelle sortiert.** Google, Social Media, Bilder, Videos, Zeitungen und Nachrichten. Leere Rubriken bleiben leer.
-- **Sichtbarkeit pro Fund.** Jeder Fund ist öffentlich, teilbar oder privat. Bei Bedarf lässt sich direkt eine DSGVO-Löschung anfragen.
-- **Links zum Teilen.** Ein Link zeigt eine Auswahl der Funde und läuft nach 24 Stunden, 7 Tagen oder 30 Tagen ab.
+- **Alle Kanäle gebündelt.** Instagram, LinkedIn, YouTube, TikTok, GitHub, Website und mehr. MyVita erkennt die Plattform an der Adresse.
+- **Portfolio.** Programme, Apps, Designs und Videos mit Bild, Beschreibung und Link.
+- **Lebenslauf.** Erfahrung und Ausbildung, immer aktuell.
+- **Selbst bestimmen, wer was sieht.** Jeder Eintrag ist öffentlich, nur für Bewerbungslinks oder privat.
+- **Bewerben per Link.** Ein privater Link pro Bewerbung. Er läuft ab, und man sieht, wie oft er geöffnet wurde.
+- **Netzwerk.** Mitglieder finden nach Name, @Name, MyVita-ID, Fähigkeit oder Ort und ihnen folgen.
+- **Mich im Netz finden.** MyVita sucht im Netz nach dem eigenen Namen. Treffer übernimmt man mit einem Klick.
 
 ## Ansichten
 
-### Personenansicht
+### Die Vita einer Person
 
-![Personenansicht mit Personen-ID](docs/screenshots/dashboard.png)
+![Öffentliche Vita](docs/screenshots/vita.png)
 
-### Funde nach Rubrik
+### Mitglieder finden
 
-![Funde nach Rubrik sortiert](docs/screenshots/funde.png)
+![Suche nach Fähigkeit](docs/screenshots/suche.png)
 
-### Link teilen
+### Eigenes Profil bearbeiten
 
-![Zeitlich begrenzten Link erzeugen](docs/screenshots/teilen.png)
-
-> Die Live-Vorschau zeigt das Beispielprofil „Alex Rivera“ zum Durchklicken. Eingaben und Suche sind dort abgeschaltet.
+![Kanäle bearbeiten](docs/screenshots/editor.png)
 
 ## Technik
 
-Next.js 16, React 19, TypeScript, Tailwind CSS. Der Code liegt im Ordner [`myindex`](myindex).
-
-```bash
-cd myindex
-npm install
-npm run dev
-```
-
-Danach läuft die App unter http://localhost:3000.
+Next.js 16, React 19, TypeScript, Tailwind CSS, Drizzle ORM und Postgres. Gedacht für Supabase (Datenbank) und Cloudflare (Hosting). Der Code liegt im Ordner [`myindex`](myindex). Dort steht in der [Anleitung](myindex/README.md), wie man die App lokal startet und online stellt.

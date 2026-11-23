@@ -4,12 +4,13 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "MyVita",
     short_name: "MyVita",
-    description: "Personenansicht für alles, was im Netz zu einem Namen liegt.",
-    start_url: "/dashboard",
+    description: "Deine Vita. Alles an einem Ort.",
+    start_url: "/profil",
     scope: "/",
     display: "standalone",
-    background_color: "#070b14",
-    theme_color: "#070b14",
+    background_color: "#08090c",
+    theme_color: "#08090c",
     lang: "de",
+    icons: [{ src: "/apple-icon", sizes: "180x180", type: "image/png" }],
   };
 }

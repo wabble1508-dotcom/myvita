@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Providers } from "@/components/providers";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,12 +13,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
   title: {
     default: "MyVita",
     template: "%s · MyVita",
   },
   applicationName: "MyVita",
-  description: "Eine Ansicht für alles, was im Netz zu einem Namen liegt. Profile, Videos und Seiten, sortiert.",
+  description: "Deine Vita, alles an einem Ort: Lebenslauf, Portfolio und alle Kanäle. Finde andere über Name oder MyVita-ID.",
   appleWebApp: {
     capable: true,
     title: "MyVita",
@@ -27,14 +27,14 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "MyVita",
-    description: "Eine Ansicht für alles, was im Netz zu einem Namen liegt.",
+    description: "Deine Vita. Alles an einem Ort.",
     locale: "de_DE",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "MyVita",
-    description: "Eine Ansicht für alles, was im Netz zu einem Namen liegt.",
+    description: "Deine Vita. Alles an einem Ort.",
   },
 };
 
@@ -45,7 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <Providers>{children}</Providers>
+        {children}
       </body>
     </html>
   );

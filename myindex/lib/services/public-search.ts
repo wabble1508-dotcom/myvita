@@ -1,6 +1,5 @@
-import type { ScanInput } from "@/lib/validators";
+import type { RawHit, ScanInput } from "@/lib/services/search-types";
 import { googleSearch } from "@/lib/services/google-browser";
-import type { RawHit } from "@/lib/services/normalizer";
 
 const USER_AGENT = "Mozilla/5.0 (compatible; MyVita/0.1; public name search)";
 const BROWSER_UA =

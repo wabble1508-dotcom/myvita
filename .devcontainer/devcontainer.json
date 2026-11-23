@@ -1,14 +1,22 @@
 {
   "name": "MyVita",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
   "workspaceFolder": "/workspaces/myvita/myindex",
-  "postCreateCommand": "npm install",
+  "containerEnv": {
+    "DATABASE_URL": "postgres://postgres:postgres@localhost:5432/myvita"
+  },
+  "postCreateCommand": "npm install && npm run db:migrate",
   "postAttachCommand": "npm run dev -- --hostname 0.0.0.0",
   "forwardPorts": [3000],
   "portsAttributes": {
     "3000": {
       "label": "MyVita",
       "onAutoForward": "openBrowser"
+    },
+    "5432": {
+      "label": "Datenbank",
+      "onAutoForward": "silent"
     }
   }
 }
