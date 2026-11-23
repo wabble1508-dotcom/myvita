@@ -1,15 +1,21 @@
 import type { Metadata } from "next";
 import { Fill, LegalPage } from "@/components/site/legal-page";
+import { OPERATOR } from "@/lib/operator";
 
 export const metadata: Metadata = { title: "Datenschutz" };
 
-// Grundgerüst. Vor dem Start von einer Fachperson oder einem Generator prüfen und ergänzen lassen.
+// Vor dem Start von einer Fachperson prüfen lassen. Gelb markiert: hängt davon ab, welche Dienste wirklich genutzt werden.
 export default function PrivacyPage() {
   return (
     <LegalPage title="Datenschutz">
       <h2>Verantwortlich</h2>
       <p>
-        <Fill>Name, Anschrift und E-Mail des Betreibers</Fill>
+        {OPERATOR.company}, Inhaber {OPERATOR.owner}, {OPERATOR.street}, {OPERATOR.city}, {OPERATOR.country}. Telefon: {OPERATOR.phone},
+        E-Mail: <a href={`mailto:${OPERATOR.email}`} className="underline">{OPERATOR.email}</a>
+      </p>
+      <p>
+        Ein Datenschutzbeauftragter ist nicht bestellt, da wir hierzu gesetzlich nicht verpflichtet sind. Bei Fragen zum Datenschutz
+        wende dich an die oben genannte E-Mail-Adresse.
       </p>
       <h2>Was MyVita speichert</h2>
       <p>
@@ -34,13 +40,19 @@ export default function PrivacyPage() {
       <h2>Deine Rechte</h2>
       <p>
         Unter „Konto“ lädst du alle deine Daten herunter oder löschst dein Konto mit allen Daten sofort. Für weitere Fragen zu Auskunft,
-        Berichtigung, Löschung oder Widerspruch schreib an <Fill>Kontakt-E-Mail</Fill>. Du kannst dich bei einer
-        Datenschutz-Aufsichtsbehörde beschweren.
+        Berichtigung, Löschung oder Widerspruch schreib an{" "}
+        <a href={`mailto:${OPERATOR.email}`} className="underline">{OPERATOR.email}</a>. Du kannst dich bei einer
+        Datenschutz-Aufsichtsbehörde beschweren, zum Beispiel bei der Landesbeauftragten für Datenschutz und Informationsfreiheit
+        Nordrhein-Westfalen (LDI NRW).
       </p>
       <h2>Dienstleister</h2>
       <p>
-        Hosting: <Fill>Cloudflare, Inc.</Fill>. Datenbank: <Fill>Supabase, Region z. B. Frankfurt</Fill>. E-Mail-Versand:{" "}
-        <Fill>Resend, falls genutzt</Fill>.
+        Hosting: Cloudflare, Inc. (USA). Cloudflare liefert die Seiten aus und verarbeitet dabei technisch nötige Daten wie die IP-Adresse.
+        Datenbank: Supabase, Inc., mit Speicherort in Frankfurt am Main. Mit beiden bestehen Verträge zur Auftragsverarbeitung; für
+        Übermittlungen in die USA gelten die EU-Standardvertragsklauseln.
+      </p>
+      <p>
+        E-Mail-Versand (z. B. „Passwort vergessen“): <Fill>Resend, Inc. (USA), falls genutzt</Fill>.
       </p>
     </LegalPage>
   );

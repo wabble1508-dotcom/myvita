@@ -81,5 +81,6 @@ Bei [resend.com](https://resend.com) ein Konto anlegen, die eigene Domain bestä
 
 ### 4. Vor dem Start
 
-- Impressum (`app/impressum/page.tsx`) und Datenschutz (`app/datenschutz/page.tsx`) ausfüllen. Die gelb markierten Stellen sind Platzhalter.
+- Impressum und Datenschutz nutzen die Betreiberangaben aus `lib/operator.ts` (PS Professional Solutions). In `app/datenschutz/page.tsx` ist nur noch der E-Mail-Dienst gelb markiert: eintragen, sobald Resend genutzt wird, sonst den Absatz löschen.
+- Bei Supabase und Cloudflare den Vertrag zur Auftragsverarbeitung (DPA) abschließen. Die Datenschutzseite geht davon aus, dass es ihn gibt.
 - Die Suche „Mich im Netz finden“ nutzt öffentliche Suchseiten. Bei Cloudflare fehlt dafür der eingebaute Browser, deshalb liefert sie dort weniger Treffer als lokal.
