@@ -39,3 +39,4 @@ Auf MyVita legt jede Person ihre eigene Vita an: Lebenslauf, Projekte und alle K
 ## Technik
 
 Next.js 16, React 19, TypeScript, Tailwind CSS, Drizzle ORM und Cloudflare D1. Läuft komplett kostenlos bei Cloudflare. Der Code liegt im Ordner [`myindex`](myindex). Dort steht in der [Anleitung](myindex/README.md), wie man die App lokal startet und online stellt.
+
