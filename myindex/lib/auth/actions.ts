@@ -108,7 +108,7 @@ export async function requestPasswordReset(_: FormState, form: FormData): Promis
     await sendMail(
       user.email,
       "Neues Passwort für MyVita",
-      `Hallo,\n\nüber diesen Link legst du ein neues Passwort fest. Er gilt eine Stunde:\n${appUrl(`/passwort-neu/${token}`)}\n\nWenn du das nicht warst, ignorier diese E-Mail.\n\nMyVita`,
+      `Hallo,\n\nüber diesen Link legst du ein neues Passwort fest. Er gilt eine Stunde:\n${await appUrl(`/passwort-neu/${token}`)}\n\nWenn du das nicht warst, ignorier diese E-Mail.\n\nMyVita`,
     );
   }
   // Immer dieselbe Antwort, damit niemand fremde Adressen abfragen kann.

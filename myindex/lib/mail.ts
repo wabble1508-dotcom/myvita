@@ -1,4 +1,5 @@
 import "server-only";
+import { appOrigin } from "@/lib/origin";
 
 /** Schickt eine E-Mail über Resend. Ohne Schlüssel landet sie im Server-Log, damit lokal alles testbar bleibt. */
 export async function sendMail(to: string, subject: string, text: string): Promise<void> {
@@ -15,7 +16,6 @@ export async function sendMail(to: string, subject: string, text: string): Promi
   if (!response.ok) throw new Error("Die E-Mail ließ sich nicht senden. Versuch es später noch einmal.");
 }
 
-export function appUrl(path: string): string {
-  const base = (process.env.APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
-  return `${base}${path}`;
+export async function appUrl(path: string): Promise<string> {
+  return `${await appOrigin()}${path}`;
 }

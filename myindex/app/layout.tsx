@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { appOrigin } from "@/lib/origin";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,8 +13,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
+export async function generateMetadata(): Promise<Metadata> {
+  return { metadataBase: new URL(await appOrigin()), ...metadata };
+}
+
+const metadata: Metadata = {
   title: {
     default: "MyVita",
     template: "%s · MyVita",

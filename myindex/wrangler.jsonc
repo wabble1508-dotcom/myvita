@@ -16,10 +16,7 @@
       "database_id": "422f075c-c26c-4f65-b275-f2e4e8b6e959",
       "migrations_dir": "drizzle"
     }
-  ],
-  "vars": {
-    // Öffentliche Adresse, für Links in E-Mails. Nach dem Kauf der Domain hier ändern.
-    "APP_URL": "https://myvita.workers.dev"
-  }
+  ]
+  // Optional: "vars": { "APP_URL": "https://deine-domain.de" } – sonst nimmt die App die Adresse der Anfrage.
   // RESEND_API_KEY für E-Mails als Secret im Cloudflare-Dashboard setzen, nicht hier.
 }
