@@ -1,4 +1,8 @@
 import type { NextConfig } from "next";
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
+
+// Stellt beim lokalen Entwickeln die Cloudflare-Bindungen (z. B. die D1-Datenbank) bereit.
+initOpenNextCloudflareForDev();
 
 const nextConfig: NextConfig = {
   cacheComponents: false,

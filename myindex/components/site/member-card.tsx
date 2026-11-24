@@ -13,6 +13,7 @@ export function MemberCard({ member }: { member: SearchHit }) {
       <div className="min-w-0 flex-1">
         <p className="flex flex-wrap items-center gap-2">
           <span className="truncate text-base font-medium text-white">{member.displayName}</span>
+          {member.isDemo ? <span className="rounded-full bg-amber-300/15 px-2 py-0.5 text-[10px] font-medium text-amber-100">Beispiel</span> : null}
           {member.openToWork ? <Sparkles className="size-3.5 text-emerald-300" aria-label="Offen für Jobs" /> : null}
         </p>
         <p className="text-xs text-zinc-500">

@@ -47,9 +47,9 @@ export default function PrivacyPage() {
       </p>
       <h2>Dienstleister</h2>
       <p>
-        Hosting: Cloudflare, Inc. (USA). Cloudflare liefert die Seiten aus und verarbeitet dabei technisch nötige Daten wie die IP-Adresse.
-        Datenbank: Supabase, Inc., mit Speicherort in Frankfurt am Main. Mit beiden bestehen Verträge zur Auftragsverarbeitung; für
-        Übermittlungen in die USA gelten die EU-Standardvertragsklauseln.
+        Hosting und Datenbank: Cloudflare, Inc. (USA). Cloudflare liefert die Seiten aus und verarbeitet dabei technisch nötige Daten wie
+        die IP-Adresse. Die Datenbank (Cloudflare D1) liegt in Westeuropa. Mit Cloudflare besteht ein Vertrag zur Auftragsverarbeitung;
+        für Übermittlungen in die USA gelten die EU-Standardvertragsklauseln.
       </p>
       <p>
         E-Mail-Versand (z. B. „Passwort vergessen“): <Fill>Resend, Inc. (USA), falls genutzt</Fill>.

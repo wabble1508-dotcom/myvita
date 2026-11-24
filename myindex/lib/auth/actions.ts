@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { and, eq, gt } from "drizzle-orm";
 import { z } from "zod";
 import { db, schema } from "@/lib/db";
+import { buildSearchText } from "@/lib/db/schema";
 import { hashPassword, newId, newPublicId, randomToken, sha256, verifyPassword } from "@/lib/auth/crypto";
 import { endSession, startSession } from "@/lib/auth/session";
 import { handleProblem, normalizeHandle } from "@/lib/domain/handle";
@@ -53,15 +54,19 @@ export async function signup(_: FormState, form: FormData): Promise<FormState> {
   const userId = newId();
   const passwordHash = await hashPassword(data.password);
   try {
-    await db().transaction(async (tx) => {
-      await tx.insert(schema.users).values({ id: userId, email: data.email, passwordHash });
-      await tx.insert(schema.profiles).values({
-        userId,
-        handle: data.handle,
-        publicId: newPublicId(),
-        displayName: data.displayName,
-      });
-    });
+    // D1 kennt keine Transaktionen über mehrere Aufrufe; ein Batch läuft aber als Ganzes oder gar nicht.
+    await db().batch([
+      db().insert(schema.users).values({ id: userId, email: data.email, passwordHash }),
+      db()
+        .insert(schema.profiles)
+        .values({
+          userId,
+          handle: data.handle,
+          publicId: newPublicId(),
+          displayName: data.displayName,
+          searchText: buildSearchText(data),
+        }),
+    ]);
   } catch {
     // Gleichzeitig angelegt oder ID-Zufall doppelt: selten, ein zweiter Versuch reicht.
     return { error: "Das Konto ließ sich nicht anlegen. Versuch es noch einmal.", values };

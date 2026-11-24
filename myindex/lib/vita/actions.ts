@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { and, eq, max, ne } from "drizzle-orm";
 import { z } from "zod";
 import { db, schema } from "@/lib/db";
+import { buildSearchText } from "@/lib/db/schema";
 import type { FormState } from "@/lib/auth/actions";
 import { hashPassword, newId, randomToken, verifyPassword } from "@/lib/auth/crypto";
 import { endSession, requireViewer } from "@/lib/auth/session";
@@ -93,11 +94,13 @@ export async function saveProfile(_: FormState, form: FormData): Promise<FormSta
     const avatarId = await storeImage(viewer.id, form.get("avatar"));
     if (avatarId || removeAvatar) await dropImage(viewer.id, current?.avatarId);
 
+    const skills = list(text(form, "skills"), 30);
     await db()
       .update(schema.profiles)
       .set({
         ...data,
-        skills: list(text(form, "skills"), 30),
+        skills,
+        searchText: buildSearchText({ ...data, skills }),
         openToWork: form.get("openToWork") === "on",
         searchable: form.get("searchable") === "on",
         ...(avatarId ? { avatarId } : removeAvatar ? { avatarId: null } : {}),
@@ -153,11 +156,10 @@ export async function moveLink(id: string, direction: "up" | "down"): Promise<vo
   const target = direction === "up" ? index - 1 : index + 1;
   if (index < 0 || target < 0 || target >= rows.length) return;
   [rows[index], rows[target]] = [rows[target]!, rows[index]!];
-  await db().transaction(async (tx) => {
-    for (const [position, row] of rows.entries()) {
-      await tx.update(schema.links).set({ position }).where(eq(schema.links.id, row.id));
-    }
-  });
+  const [first, ...rest] = rows.map((row, position) =>
+    db().update(schema.links).set({ position }).where(eq(schema.links.id, row.id)),
+  );
+  if (first) await db().batch([first, ...rest]);
   refresh();
 }
 

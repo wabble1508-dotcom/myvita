@@ -8,6 +8,18 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
-  "observability": { "enabled": true }
-  // DATABASE_URL, APP_URL und RESEND_API_KEY werden als Secrets im Cloudflare-Dashboard gesetzt, nicht hier.
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "myvita",
+      "database_id": "422f075c-c26c-4f65-b275-f2e4e8b6e959",
+      "migrations_dir": "drizzle"
+    }
+  ],
+  "vars": {
+    // Öffentliche Adresse, für Links in E-Mails. Nach dem Kauf der Domain hier ändern.
+    "APP_URL": "https://myvita.workers.dev"
+  }
+  // RESEND_API_KEY für E-Mails als Secret im Cloudflare-Dashboard setzen, nicht hier.
 }

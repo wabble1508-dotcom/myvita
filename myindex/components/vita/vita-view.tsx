@@ -36,6 +36,9 @@ export function VitaView({ vita, actions }: { vita: Vita; actions?: React.ReactN
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1">
             <h1 className="text-3xl font-medium tracking-tight text-white sm:text-4xl">{profile.displayName}</h1>
+            {profile.isDemo ? (
+              <span className="rounded-full bg-amber-300/15 px-2.5 py-1 text-xs font-medium text-amber-100">Beispielprofil</span>
+            ) : null}
             {profile.openToWork ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/15 px-2.5 py-1 text-xs font-medium text-emerald-200">
                 <Sparkles className="size-3" /> Offen für Jobs

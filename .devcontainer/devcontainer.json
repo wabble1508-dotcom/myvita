@@ -1,22 +1,14 @@
 {
   "name": "MyVita",
-  "dockerComposeFile": "docker-compose.yml",
-  "service": "app",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
   "workspaceFolder": "/workspaces/myvita/myindex",
-  "containerEnv": {
-    "DATABASE_URL": "postgres://postgres:postgres@localhost:5432/myvita"
-  },
-  "postCreateCommand": "npm install && npm run db:migrate",
+  "postCreateCommand": "npm install && npm run db:migrate:local && node scripts/demo-seed.mjs > .wrangler/demo.sql && npx wrangler d1 execute DB --local --file .wrangler/demo.sql",
   "postAttachCommand": "npm run dev -- --hostname 0.0.0.0",
   "forwardPorts": [3000],
   "portsAttributes": {
     "3000": {
       "label": "MyVita",
       "onAutoForward": "openBrowser"
-    },
-    "5432": {
-      "label": "Datenbank",
-      "onAutoForward": "silent"
     }
   }
 }

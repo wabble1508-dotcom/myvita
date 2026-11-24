@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, count, desc, eq, gt, ilike, inArray, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, inArray, or, sql } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import type { CvEntryRow, LinkRow, Profile, ProjectRow, ShareLinkRow, Visibility } from "@/lib/db/schema";
 
@@ -115,7 +115,7 @@ export async function shareLinksOf(userId: string): Promise<ShareLinkRow[]> {
 
 export type SearchHit = Pick<
   Profile,
-  "handle" | "publicId" | "displayName" | "headline" | "location" | "avatarId" | "skills" | "openToWork"
+  "handle" | "publicId" | "displayName" | "headline" | "location" | "avatarId" | "skills" | "openToWork" | "isDemo"
 >;
 
 /** Findet auffindbare Mitglieder nach Name, @Name, MyVita-ID, Überschrift, Ort oder Fähigkeit. */
@@ -130,6 +130,7 @@ export async function searchMembers(query: string, limit = 30): Promise<SearchHi
     avatarId: schema.profiles.avatarId,
     skills: schema.profiles.skills,
     openToWork: schema.profiles.openToWork,
+    isDemo: schema.profiles.isDemo,
   };
   if (!q) {
     return db()
@@ -139,8 +140,8 @@ export async function searchMembers(query: string, limit = 30): Promise<SearchHi
       .orderBy(desc(schema.profiles.updatedAt))
       .limit(limit);
   }
-  const plain = q.replace(/^@/, "");
-  const like = `%${plain.replace(/[\\%_]/g, (char) => `\\${char}`)}%`;
+  const plain = q.replace(/^@/, "").toLowerCase();
+  const escaped = plain.replace(/[\\%_]/g, (char) => `\\${char}`);
   const compactId = plain.toUpperCase().replace(/[^A-Z0-9]/g, "").replace(/^MV/, "");
   return db()
     .select(columns)
@@ -149,17 +150,14 @@ export async function searchMembers(query: string, limit = 30): Promise<SearchHi
       and(
         eq(schema.profiles.searchable, true),
         or(
-          ilike(schema.profiles.displayName, like),
-          ilike(schema.profiles.handle, like),
-          ilike(schema.profiles.headline, like),
-          ilike(schema.profiles.location, like),
+          sql`${schema.profiles.searchText} like ${`%${escaped}%`} escape '\\'`,
           compactId.length === 8 ? eq(schema.profiles.publicId, `MV-${compactId}`) : undefined,
-          sql`exists (select 1 from unnest(${schema.profiles.skills}) s where s ilike ${like})`,
         ),
       ),
     )
     .orderBy(
-      sql`case when ${schema.profiles.handle} = ${plain.toLowerCase()} then 0 when ${schema.profiles.displayName} ilike ${`${plain}%`} then 1 else 2 end`,
+      // Genauer @Name zuerst, dann Namen, die mit dem Suchwort beginnen.
+      sql`case when ${schema.profiles.handle} = ${plain} then 0 when ${schema.profiles.searchText} like ${`${escaped}%`} escape '\\' then 1 else 2 end`,
       asc(schema.profiles.displayName),
     )
     .limit(limit);

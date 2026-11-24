@@ -1,57 +1,53 @@
-import {
-  boolean,
-  customType,
-  index,
-  integer,
-  pgEnum,
-  pgTable,
-  primaryKey,
-  text,
-  timestamp,
-  uniqueIndex,
-} from "drizzle-orm/pg-core";
-
-const bytea = customType<{ data: Buffer; driverData: Buffer }>({
-  dataType: () => "bytea",
-});
+import { blob, index, integer, primaryKey, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 /** Wer einen Eintrag sieht: alle, nur Empfänger eines Bewerbungslinks, oder nur man selbst. */
-export const visibility = pgEnum("visibility", ["public", "link", "private"]);
-export const cvKind = pgEnum("cv_kind", ["experience", "education"]);
+export const VISIBILITIES = ["public", "link", "private"] as const;
+export const CV_KINDS = ["experience", "education"] as const;
+export type Visibility = (typeof VISIBILITIES)[number];
+export type CvKind = (typeof CV_KINDS)[number];
 
-const created = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
+const created = () =>
+  integer("created_at", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date());
 const userRef = () =>
   text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" });
+const visibility = () => text("visibility", { enum: VISIBILITIES }).notNull().default("public");
+const list = (name: string) =>
+  text(name, { mode: "json" })
+    .$type<string[]>()
+    .notNull()
+    .$defaultFn(() => []);
 
-export const users = pgTable("users", {
+export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   createdAt: created(),
 });
 
-export const sessions = pgTable(
+export const sessions = sqliteTable(
   "sessions",
   {
     /** SHA-256 des Cookie-Werts, nie der Wert selbst. */
     id: text("id").primaryKey(),
     userId: userRef(),
-    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
     createdAt: created(),
   },
   (t) => [index("sessions_user_idx").on(t.userId)],
 );
 
-export const passwordResets = pgTable("password_resets", {
+export const passwordResets = sqliteTable("password_resets", {
   id: text("id").primaryKey(),
   userId: userRef(),
-  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
   createdAt: created(),
 });
 
-export const profiles = pgTable(
+export const profiles = sqliteTable(
   "profiles",
   {
     userId: text("user_id")
@@ -63,32 +59,38 @@ export const profiles = pgTable(
     headline: text("headline").notNull().default(""),
     bio: text("bio").notNull().default(""),
     location: text("location").notNull().default(""),
-    skills: text("skills").array().notNull().default([]),
+    skills: list("skills"),
     avatarId: text("avatar_id"),
-    openToWork: boolean("open_to_work").notNull().default(false),
+    openToWork: integer("open_to_work", { mode: "boolean" }).notNull().default(false),
     /** Aus: Profil erscheint nicht in der Suche und ist nur über Bewerbungslinks sichtbar. */
-    searchable: boolean("searchable").notNull().default(true),
+    searchable: integer("searchable", { mode: "boolean" }).notNull().default(true),
+    /** Kleingeschriebener Suchtext aus Name, @Name, Überschrift, Ort und Fähigkeiten (SQLite kennt kein Unicode-ILIKE). */
+    searchText: text("search_text").notNull().default(""),
+    /** Beispielprofil zum Vorführen, keine echte Person. */
+    isDemo: integer("is_demo", { mode: "boolean" }).notNull().default(false),
     createdAt: created(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date()),
   },
-  (t) => [uniqueIndex("profiles_handle_idx").on(t.handle)],
+  (t) => [uniqueIndex("profiles_handle_idx").on(t.handle), index("profiles_updated_idx").on(t.updatedAt)],
 );
 
-export const links = pgTable(
+export const links = sqliteTable(
   "links",
   {
     id: text("id").primaryKey(),
     userId: userRef(),
     url: text("url").notNull(),
     label: text("label").notNull().default(""),
-    visibility: visibility("visibility").notNull().default("public"),
+    visibility: visibility(),
     position: integer("position").notNull().default(0),
     createdAt: created(),
   },
   (t) => [index("links_user_idx").on(t.userId)],
 );
 
-export const projects = pgTable(
+export const projects = sqliteTable(
   "projects",
   {
     id: text("id").primaryKey(),
@@ -97,20 +99,20 @@ export const projects = pgTable(
     description: text("description").notNull().default(""),
     url: text("url").notNull().default(""),
     imageId: text("image_id"),
-    tags: text("tags").array().notNull().default([]),
-    visibility: visibility("visibility").notNull().default("public"),
+    tags: list("tags"),
+    visibility: visibility(),
     position: integer("position").notNull().default(0),
     createdAt: created(),
   },
   (t) => [index("projects_user_idx").on(t.userId)],
 );
 
-export const cvEntries = pgTable(
+export const cvEntries = sqliteTable(
   "cv_entries",
   {
     id: text("id").primaryKey(),
     userId: userRef(),
-    kind: cvKind("kind").notNull(),
+    kind: text("kind", { enum: CV_KINDS }).notNull(),
     /** Rolle oder Abschluss. */
     title: text("title").notNull(),
     /** Firma oder Schule. */
@@ -121,21 +123,21 @@ export const cvEntries = pgTable(
     /** Leer heißt: bis heute. */
     endDate: text("end_date").notNull().default(""),
     description: text("description").notNull().default(""),
-    visibility: visibility("visibility").notNull().default("public"),
+    visibility: visibility(),
     createdAt: created(),
   },
   (t) => [index("cv_user_idx").on(t.userId)],
 );
 
-export const media = pgTable("media", {
+export const media = sqliteTable("media", {
   id: text("id").primaryKey(),
   userId: userRef(),
   contentType: text("content_type").notNull(),
-  data: bytea("data").notNull(),
+  data: blob("data", { mode: "buffer" }).notNull(),
   createdAt: created(),
 });
 
-export const shareLinks = pgTable(
+export const shareLinks = sqliteTable(
   "share_links",
   {
     id: text("id").primaryKey(),
@@ -143,14 +145,14 @@ export const shareLinks = pgTable(
     token: text("token").notNull().unique(),
     /** Für wen der Link ist, z. B. "Bewerbung bei Muster GmbH". */
     label: text("label").notNull().default(""),
-    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
     views: integer("views").notNull().default(0),
     createdAt: created(),
   },
   (t) => [index("share_user_idx").on(t.userId)],
 );
 
-export const follows = pgTable(
+export const follows = sqliteTable(
   "follows",
   {
     followerId: text("follower_id")
@@ -164,10 +166,21 @@ export const follows = pgTable(
   (t) => [primaryKey({ columns: [t.followerId, t.followeeId] }), index("follows_followee_idx").on(t.followeeId)],
 );
 
-export type Visibility = (typeof visibility.enumValues)[number];
-export type CvKind = (typeof cvKind.enumValues)[number];
 export type Profile = typeof profiles.$inferSelect;
 export type LinkRow = typeof links.$inferSelect;
 export type ProjectRow = typeof projects.$inferSelect;
 export type CvEntryRow = typeof cvEntries.$inferSelect;
 export type ShareLinkRow = typeof shareLinks.$inferSelect;
+
+/** Baut den Suchtext eines Profils. JavaScript schreibt Umlaute korrekt klein, SQLite nicht. */
+export function buildSearchText(profile: {
+  displayName: string;
+  handle: string;
+  headline?: string;
+  location?: string;
+  skills?: string[];
+}): string {
+  return [profile.displayName, profile.handle, profile.headline ?? "", profile.location ?? "", ...(profile.skills ?? [])]
+    .join(" | ")
+    .toLowerCase();
+}

@@ -1,6 +1,6 @@
 # MyVita – App
 
-Soziales Netzwerk für Lebenslauf, Portfolio und alle Kanäle einer Person. Next.js 16, React 19, TypeScript, Tailwind CSS, Drizzle ORM und Postgres.
+Soziales Netzwerk für Lebenslauf, Portfolio und alle Kanäle einer Person. Next.js 16, React 19, TypeScript, Tailwind CSS, Drizzle ORM und Cloudflare D1 (SQLite). Läuft komplett im kostenlosen Cloudflare-Tarif.
 
 ## Was die App kann
 
@@ -27,60 +27,47 @@ Soziales Netzwerk für Lebenslauf, Portfolio und alle Kanäle einer Person. Next
 
 ## Lokal starten
 
-Du brauchst Node.js 22 und eine Postgres-Datenbank.
+Du brauchst Node.js 22. Eine Datenbank musst du nicht installieren: wrangler legt lokal eine D1-Datenbank an.
 
 ```bash
 cd myindex
 npm install
-cp .env.example .env.local
-npm run db:migrate
+npm run db:migrate:local
+node scripts/demo-seed.mjs > .wrangler/demo.sql && npx wrangler d1 execute DB --local --file .wrangler/demo.sql
 npm run dev
 ```
 
-Danach läuft die App unter http://localhost:3000. Ohne `RESEND_API_KEY` werden E-Mails (z. B. „Passwort vergessen“) nicht verschickt, sondern im Terminal ausgegeben.
+Danach läuft die App unter http://localhost:3000, mit sechs Beispielprofilen. Ohne `RESEND_API_KEY` werden E-Mails (z. B. „Passwort vergessen“) nicht verschickt, sondern im Terminal ausgegeben.
 
-Im GitHub Codespace läuft die Datenbank automatisch mit (siehe `.devcontainer`).
+So wie bei Cloudflare testen: `npm run cf:preview`.
 
 ## Datenbank ändern
 
 1. Tabellen in `lib/db/schema.ts` anpassen.
 2. `npm run db:generate` erzeugt eine neue Migration in `drizzle/`.
-3. `npm run db:migrate` spielt sie in die Datenbank ein.
+3. `npm run db:migrate:local` spielt sie lokal ein, `npm run db:migrate:remote` in die echte Datenbank.
 
-## Online stellen: Supabase + Cloudflare
+## Online bei Cloudflare (kostenlos)
 
-### 1. Datenbank bei Supabase
+Die Datenbank `myvita` (D1, Westeuropa) ist schon angelegt und in `wrangler.jsonc` eingetragen, mit Tabellen und Beispielprofilen.
 
-1. Auf [supabase.com](https://supabase.com) mit GitHub anmelden und ein neues Projekt anlegen. Region: **Frankfurt (eu-central-1)**.
-2. Unter **Connect** den Connection String **Transaction pooler** (Port 6543) kopieren und das Passwort einsetzen.
-3. Einmal die Tabellen anlegen:
-
-   ```bash
-   DATABASE_URL="postgres://…pooler.supabase.com:6543/postgres" npm run db:migrate
-   ```
-
-### 2. App bei Cloudflare
-
-1. Auf [dash.cloudflare.com](https://dash.cloudflare.com) anmelden.
-2. **Workers & Pages → Create → Import a repository** und dieses GitHub-Repository wählen.
-3. Einstellungen:
+1. Auf [dash.cloudflare.com](https://dash.cloudflare.com) **Workers & Pages → Create → Import a repository** wählen und das GitHub-Repository `myvita` verbinden.
+2. Einstellungen:
+   - Project name: `myvita` (muss zum Namen in `wrangler.jsonc` passen)
    - Root directory: `myindex`
    - Build command: `npx opennextjs-cloudflare build`
    - Deploy command: `npx opennextjs-cloudflare deploy`
-4. Unter **Settings → Variables and Secrets** eintragen:
-   - `DATABASE_URL`: der Supabase-Connection-String von oben (als Secret)
-   - `APP_URL`: die öffentliche Adresse, z. B. `https://myvita.example.workers.dev`
-   - optional `RESEND_API_KEY` und `MAIL_FROM` für E-Mails
-5. Deployen. Ab dann geht jede Änderung auf GitHub automatisch online.
+3. **Deploy**. Danach geht jede Änderung auf GitHub automatisch online.
+4. Die Adresse (`myvita.<dein-name>.workers.dev`) in `wrangler.jsonc` bei `APP_URL` eintragen.
 
-Lokal wie bei Cloudflare testen: `.dev.vars` mit `DATABASE_URL` und `APP_URL` anlegen, dann `npm run cf:preview`.
+Eigene Domain später: **Workers & Pages → myvita → Settings → Domains & Routes → Add → Custom domain**.
 
-### 3. E-Mails (Passwort vergessen)
+### E-Mails (Passwort vergessen)
 
-Bei [resend.com](https://resend.com) ein Konto anlegen, die eigene Domain bestätigen und den API-Schlüssel als `RESEND_API_KEY` eintragen. `MAIL_FROM` z. B. `MyVita <noreply@deine-domain.de>`.
+Bei [resend.com](https://resend.com) ein Konto anlegen, die eigene Domain bestätigen und den API-Schlüssel als `RESEND_API_KEY` als Secret beim Worker eintragen. `MAIL_FROM` z. B. `MyVita <noreply@deine-domain.de>`.
 
-### 4. Vor dem Start
+### Vor dem Start
 
 - Impressum und Datenschutz nutzen die Betreiberangaben aus `lib/operator.ts` (PS Professional Solutions). In `app/datenschutz/page.tsx` ist nur noch der E-Mail-Dienst gelb markiert: eintragen, sobald Resend genutzt wird, sonst den Absatz löschen.
-- Bei Supabase und Cloudflare den Vertrag zur Auftragsverarbeitung (DPA) abschließen. Die Datenschutzseite geht davon aus, dass es ihn gibt.
+- Bei Cloudflare den Vertrag zur Auftragsverarbeitung (DPA) abschließen. Die Datenschutzseite geht davon aus, dass es ihn gibt.
 - Die Suche „Mich im Netz finden“ nutzt öffentliche Suchseiten. Bei Cloudflare fehlt dafür der eingebaute Browser, deshalb liefert sie dort weniger Treffer als lokal.
